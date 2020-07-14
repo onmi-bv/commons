@@ -60,7 +60,7 @@ func NewConfig() Config {
 		FluentdPort:       24224,
 		FieldMap:          "",
 		PrettyPrint:       false,
-		SetReporterCaller: true,
+		SetReporterCaller: false,
 		Formatter:         "text",
 		Slack:             slackrus.NewHook(),
 	}
