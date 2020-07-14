@@ -12,8 +12,8 @@ import (
 // Config defines connection configurations
 type Config struct {
 	RedisURL                string `mapstructure:"URL"`
-	RedisDB                 int    `mapstructure:"DB"`
-	RedisPwd                string `mapstructure:"PWD"`
+	RedisDB                 int    `mapstructure:"DATABASE"`
+	RedisPwd                string `mapstructure:"PASSWORD"`
 	RedisAuthEnabled        bool   `mapstructure:"AUTH_ENABLED"`
 	RedisSentinelEnabled    bool   `mapstructure:"SENTINEL_ENABLED"`
 	RedisSentinelMasterName string `mapstructure:"SENTINEL_MASTER_NAME"`
