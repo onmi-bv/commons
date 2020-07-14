@@ -11,12 +11,12 @@ import (
 
 // Config defines connection configurations
 type Config struct {
-	RedisURL                string `mapstructure:"REDIS_URL"`
-	RedisDB                 int    `mapstructure:"REDIS_DB"`
-	RedisPwd                string `mapstructure:"REDIS_PWD"`
-	RedisAuthEnabled        bool   `mapstructure:"REDIS_AUTH_ENABLED"`
-	RedisSentinelEnabled    bool   `mapstructure:"REDIS_SENTINEL_ENABLED"`
-	RedisSentinelMasterName string `mapstructure:"REDIS_SENTINEL_MASTER_NAME"`
+	RedisURL                string `mapstructure:"URL"`
+	RedisDB                 int    `mapstructure:"DB"`
+	RedisPwd                string `mapstructure:"PWD"`
+	RedisAuthEnabled        bool   `mapstructure:"AUTH_ENABLED"`
+	RedisSentinelEnabled    bool   `mapstructure:"SENTINEL_ENABLED"`
+	RedisSentinelMasterName string `mapstructure:"SENTINEL_MASTER_NAME"`
 }
 
 // NewConfig creates a config struct with the connection default values
