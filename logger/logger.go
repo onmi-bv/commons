@@ -66,8 +66,7 @@ func NewConfig() Config {
 	}
 }
 
-// LoadAndInitialize loads configuration from file or environment and
-// initializes the connection object.
+// LoadAndInitialize loads configuration from file or environment and initializes.
 func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName string, version string) (mConfig Config, mLogger *logger.Logger, err error) {
 	mConfig = NewConfig()
 

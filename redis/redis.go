@@ -64,8 +64,7 @@ func (c *Config) Initialize(ctx context.Context) (red *redis.Client, err error) 
 	return
 }
 
-// LoadAndInitialize loads configuration from file or environment and
-// initializes the connection object.
+// LoadAndInitialize loads configuration from file or environment and initializes.
 func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (cfg Config, red *redis.Client, err error) {
 	cfg = NewConfig()
 
