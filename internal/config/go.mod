@@ -1,4 +1,4 @@
-module github.com/onmi-bv/commons/connections
+module github.com/onmi-bv/commons/internal/config
 
 go 1.14
 
