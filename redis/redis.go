@@ -2,11 +2,11 @@ package redis
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/go-redis/redis"
 	"github.com/onmi-bv/commons/internal/config"
+	log "github.com/sirupsen/logrus"
 )
 
 // Config defines connection configurations
@@ -35,7 +35,7 @@ func NewConfig() Config {
 func (c *Config) Initialize(ctx context.Context) (red *redis.Client, err error) {
 
 	if c.RedisSentinelEnabled {
-		log.Printf("using redis-sentinel with address %v\n", c.RedisURL)
+		log.Debugf("using redis-sentinel with address %v", c.RedisURL)
 
 		redisOpts := &redis.FailoverOptions{
 			MasterName:    c.RedisSentinelMasterName,
@@ -65,14 +65,23 @@ func (c *Config) Initialize(ctx context.Context) (red *redis.Client, err error) 
 }
 
 // LoadAndInitialize loads configuration from file or environment and initializes.
-func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (cfg Config, red *redis.Client, err error) {
-	cfg = NewConfig()
+func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (mConfig Config, red *redis.Client, err error) {
+	mConfig = NewConfig()
 
-	err = config.ReadConfig(cFile, prefix, &cfg)
+	err = config.ReadConfig(cFile, prefix, &mConfig)
 	if err != nil {
 		return
 	}
 
-	red, err = cfg.Initialize(ctx)
+	log.Tracef("# Connecting to Redis... ")
+	log.Tracef("Redis URL: %v", mConfig.RedisURL)
+	log.Tracef("Redis database: %v", mConfig.RedisDB)
+	log.Tracef("Redis auth enabled: %v", mConfig.RedisAuthEnabled)
+	log.Tracef("Redis password: %v", "***")
+	log.Tracef("Redis sentinel enabled: %v", mConfig.RedisSentinelEnabled)
+	log.Tracef("Redis sentinel master: %v", mConfig.RedisSentinelMasterName)
+	log.Traceln("...")
+
+	red, err = mConfig.Initialize(ctx)
 	return
 }
