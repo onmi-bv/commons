@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 
 	stackdriver "github.com/TV4/logrus-stackdriver-formatter"
 	"github.com/evalphobia/logrus_fluent"
+	"github.com/onmi-bv/commons/internal/config"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -64,8 +66,22 @@ func NewConfig() Config {
 	}
 }
 
-// SetAppConfig implements logic for application log configuration
-func SetAppConfig(appName string, appVersion string, config Config) (*logger.Logger, error) {
+// LoadAndInitialize loads configuration from file or environment and
+// initializes the connection object.
+func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName string, version string) (mConfig Config, mLogger *logger.Logger, err error) {
+	mConfig = NewConfig()
+
+	err = config.ReadConfig(cFile, prefix, &mConfig)
+	if err != nil {
+		return
+	}
+
+	mLogger, err = mConfig.Initialize(ctx, appName, version)
+	return
+}
+
+// Initialize implements logic for application log configuration
+func (config *Config) Initialize(ctx context.Context, appName string, appVersion string) (*logger.Logger, error) {
 
 	// * set log level
 	logLevel, err := logger.ParseLevel(config.Level)
