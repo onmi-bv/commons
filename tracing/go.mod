@@ -1,4 +1,4 @@
-module github.com/onmi-bv/commons/connections/tracing
+module github.com/onmi-bv/commons/tracing
 
 go 1.14
 
