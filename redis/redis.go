@@ -82,32 +82,32 @@ func (c *Config) InitializeUniversalClient(ctx context.Context) (redis.Universal
 }
 
 // LoadAndInitialize loads configuration from file or environment and initializes.
-func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (mConfig Config, red *redis.Client, err error) {
-	mConfig, err = Load(ctx, cFile, prefix)
+func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (c Config, red *redis.Client, err error) {
+	c, err = Load(ctx, cFile, prefix)
 	if err != nil {
 		return
 	}
-	red, err = mConfig.Initialize(ctx)
+	red, err = c.Initialize(ctx)
 	return
 }
 
 // Load loads redis configuration from file and environment.
-func Load(ctx context.Context, cFile string, prefix string) (mConfig Config, err error) {
-	mConfig = NewConfig()
+func Load(ctx context.Context, cFile string, prefix string) (c Config, err error) {
+	c = NewConfig()
 
-	err = config.ReadConfig(cFile, prefix, &mConfig)
+	err = config.ReadConfig(cFile, prefix, &c)
 	if err != nil {
 		return
 	}
 
-	log.Tracef("# Connecting to Redis... ")
-	log.Tracef("Redis URL: %v", mConfig.RedisURL)
-	log.Tracef("Redis database: %v", mConfig.RedisDB)
-	log.Tracef("Redis auth enabled: %v", mConfig.RedisAuthEnabled)
-	log.Tracef("Redis password: %v", "***")
-	log.Tracef("Redis sentinel enabled: %v", mConfig.RedisSentinelEnabled)
-	log.Tracef("Redis sentinel master: %v", mConfig.RedisSentinelMasterName)
-	log.Traceln("...")
+	log.Debugf("# Redis config... ")
+	log.Debugf("Redis URL: %v", c.RedisURL)
+	log.Debugf("Redis database: %v", c.RedisDB)
+	log.Debugf("Redis auth enabled: %v", c.RedisAuthEnabled)
+	log.Debugf("Redis password: %v", "***")
+	log.Debugf("Redis sentinel enabled: %v", c.RedisSentinelEnabled)
+	log.Debugf("Redis sentinel master: %v", c.RedisSentinelMasterName)
+	log.Debugln("...")
 
 	return
 }
