@@ -90,6 +90,16 @@ func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (c Conf
 	return
 }
 
+// LoadAndInitializeUniversalClient loads configuration from file or environment and initializes.
+func LoadAndInitializeUniversalClient(ctx context.Context, cFile string, prefix string) (c Config, red redis.UniversalClient, err error) {
+	c, err = Load(ctx, cFile, prefix)
+	if err != nil {
+		return
+	}
+	red, err = c.InitializeUniversalClient(ctx)
+	return
+}
+
 // Load loads redis configuration from file and environment.
 func Load(ctx context.Context, cFile string, prefix string) (c Config, err error) {
 	c = NewConfig()
