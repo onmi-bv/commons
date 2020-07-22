@@ -12,12 +12,12 @@ import (
 
 // Config defines connection configurations
 type Config struct {
-	MongoURI            string `mapstructure:"URI"`
-	MongoUsername       string `mapstructure:"USERNAME"`
-	MongoDatabase       string `mapstructure:"DATABASE"`
-	MongoSource         string `mapstructure:"SOURCE"`
-	MongoDataCollection string `mapstructure:"COLLECTION"`
-	MongoPassword       string `mapstructure:"PASSWORD"`
+	URI            string `mapstructure:"URI"`
+	Username       string `mapstructure:"USERNAME"`
+	Database       string `mapstructure:"DATABASE"`
+	Source         string `mapstructure:"SOURCE"`
+	DataCollection string `mapstructure:"COLLECTION"`
+	Password       string `mapstructure:"PASSWORD"`
 }
 
 // NewConfig creates a config struct with the connection default values
@@ -28,17 +28,17 @@ func NewConfig() Config {
 // Initialize creates and initializes a redis client.
 func (c *Config) Initialize(ctx context.Context, appName string) (*mongo.Client, error) {
 
-	mongoOpts := options.Client().ApplyURI(c.MongoURI)
+	mongoOpts := options.Client().ApplyURI(c.URI)
 	mongoOpts.AppName = &appName
 
-	if c.MongoUsername != "" {
-		mongoOpts.Auth.Username = c.MongoUsername
+	if c.Username != "" {
+		mongoOpts.Auth.Username = c.Username
 	}
-	if c.MongoPassword != "" {
-		mongoOpts.Auth.Password = c.MongoPassword
+	if c.Password != "" {
+		mongoOpts.Auth.Password = c.Password
 	}
-	if c.MongoSource != "" {
-		mongoOpts.Auth.AuthSource = c.MongoSource
+	if c.Source != "" {
+		mongoOpts.Auth.AuthSource = c.Source
 	}
 
 	m, err := mongo.Connect(ctx, mongoOpts)
@@ -77,11 +77,11 @@ func Load(ctx context.Context, cFile string, prefix string) (c Config, err error
 	// MongoDataCollection string `mapstructure:"COLLECTION"`
 
 	log.Debugf("# Mongo config... ")
-	log.Debugf("Mongo URL: %v", c.MongoURI)
-	log.Debugf("Mongo database: %v", c.MongoDatabase)
-	log.Debugf("Mongo collection: %v", c.MongoDataCollection)
-	log.Debugf("Mongo source: %v", c.MongoSource)
-	log.Debugf("Mongo username: %v", c.MongoUsername)
+	log.Debugf("Mongo URL: %v", c.URI)
+	log.Debugf("Mongo database: %v", c.Database)
+	log.Debugf("Mongo collection: %v", c.DataCollection)
+	log.Debugf("Mongo source: %v", c.Source)
+	log.Debugf("Mongo username: %v", c.Username)
 	log.Debugf("Mongo password: %v", "***")
 	log.Debugln("...")
 
