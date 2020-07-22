@@ -22,12 +22,11 @@ type Config struct {
 // NewConfig creates a config struct with the connection default values
 func NewConfig() Config {
 	return Config{
-		RedisURL:                "redis:6379",
-		RedisDB:                 0,
-		RedisPwd:                "",
-		RedisAuthEnabled:        true,
-		RedisSentinelEnabled:    false,
-		RedisSentinelMasterName: "master",
+		RedisURL:             "redis:6379",
+		RedisDB:              0,
+		RedisPwd:             "",
+		RedisAuthEnabled:     true,
+		RedisSentinelEnabled: false,
 	}
 }
 
@@ -64,8 +63,36 @@ func (c *Config) Initialize(ctx context.Context) (red *redis.Client, err error) 
 	return
 }
 
+// InitializeUniversalClient creates and initializes a redis universal client.
+func (c *Config) InitializeUniversalClient(ctx context.Context) (redis.UniversalClient, error) {
+
+	redisOpts := &redis.UniversalOptions{
+		Addrs:      strings.Split(c.RedisURL, ","),
+		DB:         c.RedisDB,
+		MaxRetries: 5,
+		MasterName: c.RedisSentinelMasterName,
+	}
+	if c.RedisAuthEnabled {
+		redisOpts.Password = c.RedisPwd
+	}
+	client := redis.NewUniversalClient(redisOpts)
+	_, err := client.Ping().Result()
+
+	return client, err
+}
+
 // LoadAndInitialize loads configuration from file or environment and initializes.
 func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (mConfig Config, red *redis.Client, err error) {
+	mConfig, err = Load(ctx, cFile, prefix)
+	if err != nil {
+		return
+	}
+	red, err = mConfig.Initialize(ctx)
+	return
+}
+
+// Load loads redis configuration from file and environment.
+func Load(ctx context.Context, cFile string, prefix string) (mConfig Config, err error) {
 	mConfig = NewConfig()
 
 	err = config.ReadConfig(cFile, prefix, &mConfig)
@@ -82,6 +109,5 @@ func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (mConfi
 	log.Tracef("Redis sentinel master: %v", mConfig.RedisSentinelMasterName)
 	log.Traceln("...")
 
-	red, err = mConfig.Initialize(ctx)
 	return
 }
