@@ -12,12 +12,12 @@ import (
 
 // Config defines connection configurations
 type Config struct {
-	URI            string `mapstructure:"URI"`
-	Username       string `mapstructure:"USERNAME"`
-	Database       string `mapstructure:"DATABASE"`
-	Source         string `mapstructure:"SOURCE"`
-	DataCollection string `mapstructure:"COLLECTION"`
-	Password       string `mapstructure:"PASSWORD"`
+	URI        string `mapstructure:"URI"`
+	Username   string `mapstructure:"USERNAME"`
+	Database   string `mapstructure:"DATABASE"`
+	Source     string `mapstructure:"SOURCE"`
+	Collection string `mapstructure:"COLLECTION"`
+	Password   string `mapstructure:"PASSWORD"`
 }
 
 // NewConfig creates a config struct with the connection default values
@@ -79,7 +79,7 @@ func Load(ctx context.Context, cFile string, prefix string) (c Config, err error
 	log.Debugf("# Mongo config... ")
 	log.Debugf("Mongo URL: %v", c.URI)
 	log.Debugf("Mongo database: %v", c.Database)
-	log.Debugf("Mongo collection: %v", c.DataCollection)
+	log.Debugf("Mongo collection: %v", c.Collection)
 	log.Debugf("Mongo source: %v", c.Source)
 	log.Debugf("Mongo username: %v", c.Username)
 	log.Debugf("Mongo password: %v", "***")
