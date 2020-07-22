@@ -11,49 +11,48 @@ import (
 
 // Config defines connection configurations
 type Config struct {
-	RedisURL                string `mapstructure:"URL"`
-	RedisDB                 int    `mapstructure:"DATABASE"`
-	RedisPwd                string `mapstructure:"PASSWORD"`
-	RedisAuthEnabled        bool   `mapstructure:"AUTH_ENABLED"`
-	RedisSentinelEnabled    bool   `mapstructure:"SENTINEL_ENABLED"`
-	RedisSentinelMasterName string `mapstructure:"SENTINEL_MASTER_NAME"`
+	URL                string `mapstructure:"URL"`
+	Database           int    `mapstructure:"DATABASE"`
+	Password           string `mapstructure:"PASSWORD"`
+	AuthEnabled        bool   `mapstructure:"AUTH_ENABLED"`
+	SentinelEnabled    bool   `mapstructure:"SENTINEL_ENABLED"`
+	SentinelMasterName string `mapstructure:"SENTINEL_MASTER_NAME"`
 }
 
 // NewConfig creates a config struct with the connection default values
 func NewConfig() Config {
 	return Config{
-		RedisURL:             "redis:6379",
-		RedisDB:              0,
-		RedisPwd:             "",
-		RedisAuthEnabled:     true,
-		RedisSentinelEnabled: false,
+		URL:             "redis:6379",
+		Database:        0,
+		AuthEnabled:     true,
+		SentinelEnabled: false,
 	}
 }
 
 // Initialize creates and initializes a redis client.
 func (c *Config) Initialize(ctx context.Context) (red *redis.Client, err error) {
 
-	if c.RedisSentinelEnabled {
-		log.Debugf("using redis-sentinel with address %v", c.RedisURL)
+	if c.SentinelEnabled {
+		log.Debugf("using redis-sentinel with address %v", c.URL)
 
 		redisOpts := &redis.FailoverOptions{
-			MasterName:    c.RedisSentinelMasterName,
-			SentinelAddrs: strings.Split(c.RedisURL, ","),
-			DB:            c.RedisDB,
+			MasterName:    c.SentinelMasterName,
+			SentinelAddrs: strings.Split(c.URL, ","),
+			DB:            c.Database,
 			MaxRetries:    5,
 		}
-		if c.RedisAuthEnabled {
-			redisOpts.Password = c.RedisPwd
+		if c.AuthEnabled {
+			redisOpts.Password = c.Password
 		}
 		red = redis.NewFailoverClient(redisOpts)
 	} else {
 		redisOpts := &redis.Options{
-			Addr:       c.RedisURL,
-			DB:         c.RedisDB,
+			Addr:       c.URL,
+			DB:         c.Database,
 			MaxRetries: 5,
 		}
-		if c.RedisAuthEnabled {
-			redisOpts.Password = c.RedisPwd
+		if c.AuthEnabled {
+			redisOpts.Password = c.Password
 		}
 		red = redis.NewClient(redisOpts)
 	}
@@ -67,13 +66,13 @@ func (c *Config) Initialize(ctx context.Context) (red *redis.Client, err error) 
 func (c *Config) InitializeUniversalClient(ctx context.Context) (redis.UniversalClient, error) {
 
 	redisOpts := &redis.UniversalOptions{
-		Addrs:      strings.Split(c.RedisURL, ","),
-		DB:         c.RedisDB,
+		Addrs:      strings.Split(c.URL, ","),
+		DB:         c.Database,
 		MaxRetries: 5,
-		MasterName: c.RedisSentinelMasterName,
+		MasterName: c.SentinelMasterName,
 	}
-	if c.RedisAuthEnabled {
-		redisOpts.Password = c.RedisPwd
+	if c.AuthEnabled {
+		redisOpts.Password = c.Password
 	}
 	client := redis.NewUniversalClient(redisOpts)
 	_, err := client.Ping().Result()
@@ -101,12 +100,12 @@ func Load(ctx context.Context, cFile string, prefix string) (c Config, err error
 	}
 
 	log.Debugf("# Redis config... ")
-	log.Debugf("Redis URL: %v", c.RedisURL)
-	log.Debugf("Redis database: %v", c.RedisDB)
-	log.Debugf("Redis auth enabled: %v", c.RedisAuthEnabled)
+	log.Debugf("Redis URL: %v", c.URL)
+	log.Debugf("Redis database: %v", c.Database)
+	log.Debugf("Redis auth enabled: %v", c.AuthEnabled)
 	log.Debugf("Redis password: %v", "***")
-	log.Debugf("Redis sentinel enabled: %v", c.RedisSentinelEnabled)
-	log.Debugf("Redis sentinel master: %v", c.RedisSentinelMasterName)
+	log.Debugf("Redis sentinel enabled: %v", c.SentinelEnabled)
+	log.Debugf("Redis sentinel master: %v", c.SentinelMasterName)
 	log.Debugln("...")
 
 	return
