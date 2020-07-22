@@ -1,4 +1,4 @@
-module github.com/onmi-bv/commons/redis
+module github.com/onmi-bv/commons/mongo
 
 go 1.14
 
