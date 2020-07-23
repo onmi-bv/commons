@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis"
+	redisv8 "github.com/go-redis/redis/v8"
 	"github.com/onmi-bv/commons/internal/config"
 	log "github.com/sirupsen/logrus"
 )
@@ -80,6 +81,24 @@ func (c *Config) InitializeUniversalClient(ctx context.Context) (redis.Universal
 	return client, err
 }
 
+// InitializeUniversalClientV8 creates and initializes a redis universal client for v8.
+func (c *Config) InitializeUniversalClientV8(ctx context.Context) (redisv8.UniversalClient, error) {
+
+	redisOpts := &redisv8.UniversalOptions{
+		Addrs:      strings.Split(c.URL, ","),
+		DB:         c.Database,
+		MaxRetries: 5,
+		MasterName: c.SentinelMasterName,
+	}
+	if c.AuthEnabled {
+		redisOpts.Password = c.Password
+	}
+	client := redisv8.NewUniversalClient(redisOpts)
+	_, err := client.Ping(ctx).Result()
+
+	return client, err
+}
+
 // LoadAndInitialize loads configuration from file or environment and initializes.
 func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (c Config, red *redis.Client, err error) {
 	c, err = Load(ctx, cFile, prefix)
@@ -97,6 +116,16 @@ func LoadAndInitializeUniversalClient(ctx context.Context, cFile string, prefix 
 		return
 	}
 	red, err = c.InitializeUniversalClient(ctx)
+	return
+}
+
+// LoadAndInitializeUniversalClientV8 loads configuration from file or environment and initializes.
+func LoadAndInitializeUniversalClientV8(ctx context.Context, cFile string, prefix string) (c Config, red redisv8.UniversalClient, err error) {
+	c, err = Load(ctx, cFile, prefix)
+	if err != nil {
+		return
+	}
+	red, err = c.InitializeUniversalClientV8(ctx)
 	return
 }
 
