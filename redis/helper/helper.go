@@ -1,4 +1,4 @@
-package redis
+package helper
 
 import (
 	"context"
@@ -16,16 +16,6 @@ type Job struct {
 	Name string      // name format: tag1=val1;tag2=val2 (i.e., user=test)
 	Time int64       // time in seconds
 	Desc interface{} // Used only for reporting
-}
-
-type rediser interface {
-	Get(ctx context.Context, key string) *redis.StringCmd
-	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
-	Exists(ctx context.Context, keys ...string) *redis.IntCmd
-
-	HGet(ctx context.Context, key string, field string) *redis.StringCmd
-	HSet(ctx context.Context, key string, field string, value interface{}) *redis.BoolCmd
-	HExists(ctx context.Context, key string, field string) *redis.BoolCmd
 }
 
 // Find a pending task to be processed.
@@ -173,7 +163,7 @@ func Add(ctx context.Context, r *redis.Client, jobNS string, j Job) error {
 }
 
 // Set sets a state which expires. It uses Redis Set command.
-func Set(ctx context.Context, r rediser, ns string, name string, value interface{}, ttl time.Duration) error {
+func Set(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}, ttl time.Duration) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "SetStateTTL")
 	defer span.Finish()
 
@@ -183,28 +173,22 @@ func Set(ctx context.Context, r rediser, ns string, name string, value interface
 		return fmt.Errorf("could not marshal state: %v", err)
 	}
 
-	if err := r.Set(ctx, ns+":"+name, b, ttl); err != nil {
+	if err := r.Set(ctx, ns+":"+name, b, ttl).Err(); err != nil {
 		return fmt.Errorf("could not set value: %v", err)
 	}
 	return nil
 }
 
 // Get gets user state from redis using the Get command.
-func Get(ctx context.Context, r rediser, ns string, name string, value interface{}) error {
+func Get(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "GetState")
 	defer span.Finish()
 
 	key := ns + ":" + name
 
-	idx, err := r.Exists(ctx, key).Result()
+	_, err := r.Exists(ctx, key).Result()
 	if err != nil {
 		return fmt.Errorf("cannot check state for '%v': %v", key, err)
-	}
-
-	fmt.Println("idx", idx)
-
-	if idx == 0 {
-		return nil
 	}
 
 	str, err := r.Get(ctx, key).Result()
@@ -220,7 +204,7 @@ func Get(ctx context.Context, r rediser, ns string, name string, value interface
 }
 
 // HSet sets a state using the HSet command.
-func HSet(ctx context.Context, r rediser, ns string, name string, value interface{}) error {
+func HSet(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "SetState")
 	defer span.Finish()
 
@@ -238,7 +222,7 @@ func HSet(ctx context.Context, r rediser, ns string, name string, value interfac
 }
 
 // HGet gets user state from redis using the HGet command.
-func HGet(ctx context.Context, r rediser, ns string, name string, value interface{}) (err error) {
+func HGet(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}) (err error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "GetState")
 	defer span.Finish()
 
