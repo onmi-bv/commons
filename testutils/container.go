@@ -13,7 +13,7 @@ import (
 )
 
 // CreateNewContainer creates a new container, and binding to the hostPort.
-func CreateNewContainer(image string, hostPort string, containerPort string) (*client.Client, string, error) {
+func CreateNewContainer(image string, hostPort string, containerPort string, env []string) (*client.Client, string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		fmt.Println("Unable to create docker client")
@@ -47,6 +47,7 @@ func CreateNewContainer(image string, hostPort string, containerPort string) (*c
 		context.Background(),
 		&container.Config{
 			Image: image,
+			Env:   env,
 		},
 		&container.HostConfig{
 			PortBindings: portBinding,
