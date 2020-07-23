@@ -200,8 +200,7 @@ func Get(ctx context.Context, r redis.Cmdable, ns string, name string, value int
 		return fmt.Errorf("cannot get value for '%v': %v", key, err)
 	}
 
-	err = json.Unmarshal([]byte(str), &value)
-	if err != nil {
+	if err = json.Unmarshal([]byte(str), &value); err != nil {
 		return fmt.Errorf("cannot unmarshal value for '%v': %v", key, err)
 	}
 	return nil
@@ -218,36 +217,32 @@ func HSet(ctx context.Context, r redis.Cmdable, ns string, name string, value in
 		return fmt.Errorf("could not marshal state: %v", err)
 	}
 
-	_, err = r.HSet(ctx, ns, name, b).Result()
-	if err != nil {
+	if _, err = r.HSet(ctx, ns, name, b).Result(); err != nil {
 		return fmt.Errorf("could not save state: %v", err)
 	}
 	return nil
 }
 
 // HGet gets user state from redis using the HGet command.
-func HGet(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}) (err error) {
+func HGet(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "HGet")
 	defer span.Finish()
 
 	ok, err := r.HExists(ctx, ns, name).Result()
 	if err != nil {
-		err = fmt.Errorf("cannot check state for '%v': %v", name, err)
-		return
-	} else if !ok {
-		return
+		return fmt.Errorf("cannot check state for '%v': %v", name, err)
+	}
+	if !ok {
+		return nil
 	}
 
 	str, err := r.HGet(ctx, ns, name).Result()
 	if err != nil {
-		err = fmt.Errorf("cannot get state for '%v': %v", name, err)
-		return
+		return fmt.Errorf("cannot get state for '%v': %v", name, err)
 	}
 
-	err = json.Unmarshal([]byte(str), &value)
-	if err != nil {
-		err = fmt.Errorf("cannot unmarshal state for '%v': %v", name, err)
-		return
+	if err = json.Unmarshal([]byte(str), &value); err != nil {
+		return fmt.Errorf("cannot unmarshal state for '%v': %v", name, err)
 	}
-	return
+	return nil
 }
