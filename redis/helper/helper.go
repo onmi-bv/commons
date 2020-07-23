@@ -186,9 +186,12 @@ func Get(ctx context.Context, r redis.Cmdable, ns string, name string, value int
 
 	key := ns + ":" + name
 
-	_, err := r.Exists(ctx, key).Result()
+	idx, err := r.Exists(ctx, key).Result()
 	if err != nil {
 		return fmt.Errorf("cannot check state for '%v': %v", key, err)
+	}
+	if idx == 0 {
+		return nil
 	}
 
 	str, err := r.Get(ctx, key).Result()
