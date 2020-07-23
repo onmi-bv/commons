@@ -164,7 +164,7 @@ func Add(ctx context.Context, r *redis.Client, jobNS string, j Job) error {
 
 // Set sets a state which expires. It uses Redis Set command.
 func Set(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}, ttl time.Duration) error {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "SetStateTTL")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "Set")
 	defer span.Finish()
 
 	// persist fake state
@@ -173,7 +173,8 @@ func Set(ctx context.Context, r redis.Cmdable, ns string, name string, value int
 		return fmt.Errorf("could not marshal state: %v", err)
 	}
 
-	if err := r.Set(ctx, ns+":"+name, b, ttl).Err(); err != nil {
+	key := ns + ":" + name
+	if err := r.Set(ctx, key, b, ttl).Err(); err != nil {
 		return fmt.Errorf("could not set value: %v", err)
 	}
 	return nil
@@ -181,7 +182,7 @@ func Set(ctx context.Context, r redis.Cmdable, ns string, name string, value int
 
 // Get gets user state from redis using the Get command.
 func Get(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}) error {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "GetState")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "Get")
 	defer span.Finish()
 
 	key := ns + ":" + name
@@ -190,25 +191,25 @@ func Get(ctx context.Context, r redis.Cmdable, ns string, name string, value int
 	if err != nil {
 		return fmt.Errorf("cannot check state for '%v': %v", key, err)
 	}
-	if idx == 0 {
+	if idx == 0 { // key does not exist
 		return nil
 	}
 
 	str, err := r.Get(ctx, key).Result()
 	if err != nil {
-		return fmt.Errorf("cannot get state for '%v': %v", key, err)
+		return fmt.Errorf("cannot get value for '%v': %v", key, err)
 	}
 
 	err = json.Unmarshal([]byte(str), &value)
 	if err != nil {
-		return fmt.Errorf("cannot unmarshal state for '%v': %v", key, err)
+		return fmt.Errorf("cannot unmarshal value for '%v': %v", key, err)
 	}
 	return nil
 }
 
 // HSet sets a state using the HSet command.
 func HSet(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}) error {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "SetState")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "HSet")
 	defer span.Finish()
 
 	// persist fake state
@@ -226,7 +227,7 @@ func HSet(ctx context.Context, r redis.Cmdable, ns string, name string, value in
 
 // HGet gets user state from redis using the HGet command.
 func HGet(ctx context.Context, r redis.Cmdable, ns string, name string, value interface{}) (err error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "GetState")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "HGet")
 	defer span.Finish()
 
 	ok, err := r.HExists(ctx, ns, name).Result()
