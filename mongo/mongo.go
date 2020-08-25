@@ -12,12 +12,13 @@ import (
 
 // Config defines connection configurations
 type Config struct {
-	URI        string `mapstructure:"URI"`
-	Username   string `mapstructure:"USERNAME"`
-	Database   string `mapstructure:"DATABASE"`
-	Source     string `mapstructure:"SOURCE"`
-	Collection string `mapstructure:"COLLECTION"`
-	Password   string `mapstructure:"PASSWORD"`
+	URI         string `mapstructure:"URI"`
+	Database    string `mapstructure:"DATABASE"`
+	Collection  string `mapstructure:"COLLECTION"`
+	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
+	Username    string `mapstructure:"USERNAME"`
+	Source      string `mapstructure:"SOURCE"`
+	Password    string `mapstructure:"PASSWORD"`
 }
 
 // NewConfig creates a config struct with the connection default values
@@ -31,14 +32,13 @@ func (c *Config) Initialize(ctx context.Context, appName string) (*mongo.Client,
 	mongoOpts := options.Client().ApplyURI(c.URI)
 	mongoOpts.AppName = &appName
 
-	if c.Username != "" {
-		mongoOpts.Auth.Username = c.Username
-	}
-	if c.Password != "" {
-		mongoOpts.Auth.Password = c.Password
-	}
-	if c.Source != "" {
-		mongoOpts.Auth.AuthSource = c.Source
+	if c.AuthEnabled {
+		cred := options.Credential{
+			AuthSource: c.Source,
+			Username:   c.Username,
+			Password:   c.Password,
+		}
+		mongoOpts.SetAuth(cred)
 	}
 
 	m, err := mongo.Connect(ctx, mongoOpts)
@@ -69,21 +69,24 @@ func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName
 func Load(ctx context.Context, cFile string, prefix string) (c Config, err error) {
 	c = NewConfig()
 
+	log.Debugf("# Mongo config... ")
+	log.Debugf("Mongo URI: %v", c.URI)
+	log.Debugf("Mongo database: %v", c.Database)
+	log.Debugf("Mongo collection: %v", c.Collection)
+	log.Debugf("Mongo auth enabled: %v", c.AuthEnabled)
+	log.Debugf("Mongo source: %v", c.Source)
+	log.Debugf("Mongo username: %v", c.Username)
+	if c.Password != "" {
+		log.Debugf("Mongo password: %v", "***")
+	} else {
+		log.Debugf("Mongo password: %v", "<empty>")
+	}
+	log.Debugln("...")
+
 	err = config.ReadConfig(cFile, prefix, &c)
 	if err != nil {
 		return
 	}
-
-	// MongoDataCollection string `mapstructure:"COLLECTION"`
-
-	log.Debugf("# Mongo config... ")
-	log.Debugf("Mongo URL: %v", c.URI)
-	log.Debugf("Mongo database: %v", c.Database)
-	log.Debugf("Mongo collection: %v", c.Collection)
-	log.Debugf("Mongo source: %v", c.Source)
-	log.Debugf("Mongo username: %v", c.Username)
-	log.Debugf("Mongo password: %v", "***")
-	log.Debugln("...")
 
 	return
 }
