@@ -116,11 +116,11 @@ func (config *Config) Initialize(ctx context.Context, appName string, appVersion
 	case "json":
 		logger.SetFormatter(&logger.JSONFormatter{FieldMap: fieldMap, PrettyPrint: config.PrettyPrint})
 	case "sd":
-		logger.Debug("set stackdriver log formatter")
 		logger.SetFormatter(stackdriver.NewFormatter(
 			stackdriver.WithService(appName),
 			stackdriver.WithVersion(appVersion),
 		))
+		logger.Debug("set stackdriver log formatter")
 	}
 
 	// set log report caller
