@@ -59,11 +59,11 @@ type MutationResult struct {
 }
 
 // UpsertNode adds or updates a node.
-func UpsertNode(ctx context.Context, config Config, node Node) (uid string, err error) {
+func (c *Config) UpsertNode(ctx context.Context, node Node) (uid string, err error) {
 	log.Tracef("saving.. node: %v %v", node.DType(), node.GetID())
 
 	// update record
-	res, err := UpdateNode(ctx, config, node)
+	res, err := c.UpdateNode(ctx, node)
 	if err != nil {
 		log.Errorf("could not update node: %v", err)
 		return node.GetID(), err
@@ -71,7 +71,7 @@ func UpsertNode(ctx context.Context, config Config, node Node) (uid string, err 
 
 	// if no record was updated, add it
 	if res.NumUids == 0 {
-		res, err = AddNode(ctx, config, node)
+		res, err = c.AddNode(ctx, node)
 		if err != nil {
 			log.Errorf("could not add node: %v", err)
 			return node.GetID(), err
@@ -89,7 +89,7 @@ func UpsertNode(ctx context.Context, config Config, node Node) (uid string, err 
 }
 
 // UpdateNode uses the update<type> GraphQL API to update a node.
-func UpdateNode(ctx context.Context, config Config, node Node) (*MutationResult, error) {
+func (c *Config) UpdateNode(ctx context.Context, node Node) (*MutationResult, error) {
 	log.Debugf("updating node: %v %v", node.DType(), node.GetID())
 
 	if node.GetID() == "" {
@@ -115,7 +115,7 @@ func UpdateNode(ctx context.Context, config Config, node Node) (*MutationResult,
 	log.Trace(string(b))
 
 	// create a client (safe to share across requests)
-	client := graphql.NewClient(config.Host)
+	client := graphql.NewClient(c.Host)
 
 	// make a request
 	req := graphql.NewRequest(query)
@@ -145,7 +145,7 @@ func UpdateNode(ctx context.Context, config Config, node Node) (*MutationResult,
 }
 
 // AddNode uses the Add<type> API to add a new node.
-func AddNode(ctx context.Context, config Config, node Node) (*MutationResult, error) {
+func (c *Config) AddNode(ctx context.Context, node Node) (*MutationResult, error) {
 	log.Debugf("adding.. node: %v %v", node.DType(), node.GetID())
 
 	if node.GetID() == "" {
@@ -168,7 +168,7 @@ func AddNode(ctx context.Context, config Config, node Node) (*MutationResult, er
 	log.Trace(string(b))
 
 	// create a client (safe to share across requests)
-	client := graphql.NewClient(config.Host)
+	client := graphql.NewClient(c.Host)
 
 	// make a request
 	req := graphql.NewRequest(query)
