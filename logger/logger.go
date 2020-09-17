@@ -11,7 +11,7 @@ import (
 
 	stackdriver "github.com/TV4/logrus-stackdriver-formatter"
 	"github.com/evalphobia/logrus_fluent"
-	"github.com/onmi-bv/commons/internal/config"
+	"github.com/onmi-bv/commons/confighelper"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -70,7 +70,7 @@ func NewConfig() Config {
 func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName string, version string) (mConfig Config, mLogger *logger.Logger, err error) {
 	mConfig = NewConfig()
 
-	err = config.ReadConfig(cFile, prefix, &mConfig)
+	err = confighelper.ReadConfig(cFile, prefix, &mConfig)
 	if err != nil {
 		return
 	}
