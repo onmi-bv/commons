@@ -46,7 +46,7 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Config, error
 		return c, err
 	}
 
-	return c, err
+	return c, nil
 }
 
 // MutationResult defines GraphQL mutation result
