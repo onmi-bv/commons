@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/onmi-bv/commons/internal/config"
+	"github.com/onmi-bv/commons/confighelper"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -83,7 +83,7 @@ func Load(ctx context.Context, cFile string, prefix string) (c Config, err error
 	}
 	log.Debugln("...")
 
-	err = config.ReadConfig(cFile, prefix, &c)
+	err = confighelper.ReadConfig(cFile, prefix, &c)
 	if err != nil {
 		return
 	}
