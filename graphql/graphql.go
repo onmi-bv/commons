@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/machinebox/graphql"
-	"github.com/onmi-bv/commons/internal/config"
+	"github.com/onmi-bv/commons/confighelper"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -42,7 +42,7 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Config, error
 
 	log.Debugln("...")
 
-	if err := config.ReadConfig(cFile, prefix, &c); err != nil {
+	if err := confighelper.ReadConfig(cFile, prefix, &c); err != nil {
 		return c, err
 	}
 
