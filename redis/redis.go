@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-redis/redis"
 	redisv8 "github.com/go-redis/redis/v8"
-	"github.com/onmi-bv/commons/internal/config"
+	"github.com/onmi-bv/commons/confighelper"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -133,7 +133,7 @@ func LoadAndInitializeUniversalClientV8(ctx context.Context, cFile string, prefi
 func Load(ctx context.Context, cFile string, prefix string) (c Config, err error) {
 	c = NewConfig()
 
-	err = config.ReadConfig(cFile, prefix, &c)
+	err = confighelper.ReadConfig(cFile, prefix, &c)
 	if err != nil {
 		return
 	}
