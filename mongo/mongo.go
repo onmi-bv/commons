@@ -69,6 +69,11 @@ func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName
 func Load(ctx context.Context, cFile string, prefix string) (c Config, err error) {
 	c = NewConfig()
 
+	err = confighelper.ReadConfig(cFile, prefix, &c)
+	if err != nil {
+		return
+	}
+
 	log.Debugf("# Mongo config... ")
 	log.Debugf("Mongo URI: %v", c.URI)
 	log.Debugf("Mongo database: %v", c.Database)
@@ -82,11 +87,6 @@ func Load(ctx context.Context, cFile string, prefix string) (c Config, err error
 		log.Debugf("Mongo password: %v", "<empty>")
 	}
 	log.Debugln("...")
-
-	err = confighelper.ReadConfig(cFile, prefix, &c)
-	if err != nil {
-		return
-	}
 
 	return
 }

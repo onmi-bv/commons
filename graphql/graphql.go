@@ -30,6 +30,10 @@ type Config struct {
 func LoadConfig(ctx context.Context, cFile string, prefix string) (Config, error) {
 	c := Config{}
 
+	if err := confighelper.ReadConfig(cFile, prefix, &c); err != nil {
+		return c, err
+	}
+
 	log.Debugf("# GraphQL config... ")
 	log.Debugf("GraphQL URI: %v", c.Host)
 	log.Debugf("GraphQL auth enabled: %v", c.AuthEnabled)
@@ -41,10 +45,6 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Config, error
 	}
 
 	log.Debugln("...")
-
-	if err := confighelper.ReadConfig(cFile, prefix, &c); err != nil {
-		return c, err
-	}
 
 	return c, nil
 }
