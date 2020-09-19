@@ -71,7 +71,7 @@ func (c *Config) UpsertNode(ctx context.Context, node Node) (uid string, err err
 
 	// if no record was updated, add it
 	if res.NumUids == 0 {
-		res, err = c.AddNode(ctx, node)
+		res, err = c.AddNode(ctx, []Node{node})
 		if err != nil {
 			log.Errorf("could not add node: %v", err)
 			return node.GetID(), err
@@ -109,10 +109,10 @@ func (c *Config) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 		}
 	}`
 
-	log.Tracef("graphQL query: %v", query)
+	log.Tracef("graphql query: %v", query)
 
 	b, _ := json.MarshalIndent(node.Patch(), "  ", "  ")
-	log.Trace(string(b))
+	log.Trace("graphql node: %v", string(b))
 
 	// create a client (safe to share across requests)
 	client := graphql.NewClient(c.Host)
@@ -121,12 +121,7 @@ func (c *Config) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 	req := graphql.NewRequest(query)
 
 	// set any variables
-	// req.Var("id", node.xid())
-	// req.Var("remove", "{}")
 	req.Var("set", node.Patch())
-
-	// set header fields
-	req.Header.Set("Cache-Control", "no-cache")
 
 	// run it and capture the response
 	var respData map[string]struct {
@@ -144,28 +139,35 @@ func (c *Config) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 	return &res, nil
 }
 
-// AddNode uses the Add<type> API to add a new node.
-func (c *Config) AddNode(ctx context.Context, node Node) (*MutationResult, error) {
-	log.Debugf("adding.. node: %v %v", node.DType(), node.GetID())
+// AddNode uses the Add<type> API to add new nodes.
+// If more than 1 node is added, make sure they are of same types and their IDs doesn't exist,
+// otherwise, use Upsert tp add them individually.
+func (c *Config) AddNode(ctx context.Context, node []Node) (*MutationResult, error) {
 
-	if node.GetID() == "" {
+	if len(node) == 0 {
+		return nil, fmt.Errorf("addNodes requires nodes to add, but received none")
+	}
+
+	log.Debugf("adding.. %v nodes: %v %v", len(node), node[0].DType(), node[0].GetID())
+
+	if node[0].GetID() == "" {
 		return nil, fmt.Errorf("addNode requires XID in node")
 	}
 
-	dtype := node.DType()
+	dtype := node[0].DType()
 
 	// save node
 	query := `
-	mutation add` + dtype + `Mutation ($set: Add` + dtype + `Input!) {
-		add` + dtype + `(input: [$set]){
+	mutation add` + dtype + `Mutation ($set: [Add` + dtype + `Input!]!) {
+		add` + dtype + `(input: $set){
 			numUids
 		}
 	}`
 
-	log.Tracef("graphQL query: %v", query)
+	log.Tracef("graphql query: %v", query)
 
 	b, _ := json.MarshalIndent(node, "  ", "  ")
-	log.Trace(string(b))
+	log.Tracef("graphql node: %v", string(b))
 
 	// create a client (safe to share across requests)
 	client := graphql.NewClient(c.Host)
@@ -174,18 +176,15 @@ func (c *Config) AddNode(ctx context.Context, node Node) (*MutationResult, error
 	req := graphql.NewRequest(query)
 
 	// set any variables
-	// req.Var("id", node.xid())
-	// req.Var("remove", "{}")
 	req.Var("set", node)
-
-	// set header fields
-	req.Header.Set("Cache-Control", "no-cache")
 
 	// run it and capture the response
 	var respData map[string]struct {
 		NumUids int
 	}
+
 	if err := client.Run(ctx, req, &respData); err != nil {
+		log.Errorf("%+v", respData)
 		return nil, err
 	}
 
@@ -193,6 +192,50 @@ func (c *Config) AddNode(ctx context.Context, node Node) (*MutationResult, error
 		NumUids: respData[`add`+dtype].NumUids,
 	}
 
-	// log.Infof("Result: %v, res: %+v", respData, res)
+	return &res, nil
+}
+
+// DeleteNodeByID uses the Delete<type> API to delete a node.
+// Action is unreversable and should be used with care.
+func (c *Config) DeleteNodeByID(ctx context.Context, _type string, key string, id string) (*MutationResult, error) {
+
+	log.Debugf("deleting.. %v nodes: %v", _type, id)
+
+	if _type == "" || id == "" || key == "" {
+		return nil, fmt.Errorf("DeleteNode requires _type, key and id")
+	}
+
+	// delete node
+	query := `
+	mutation delete` + _type + `Mutation ($id: String!) {
+		delete` + _type + `(filter: { ` + key + `: { eq: $id }}){
+			numUids
+		}
+	}`
+
+	log.Tracef("graphql query: %v", query)
+
+	// create a client (safe to share across requests)
+	client := graphql.NewClient(c.Host)
+
+	// make a request
+	req := graphql.NewRequest(query)
+
+	// set any variables
+	req.Var("id", id)
+
+	// run it and capture the response
+	var respData map[string]struct {
+		NumUids int
+	}
+
+	if err := client.Run(ctx, req, &respData); err != nil {
+		return nil, err
+	}
+
+	res := MutationResult{
+		NumUids: respData[`delete`+_type].NumUids,
+	}
+
 	return &res, nil
 }
