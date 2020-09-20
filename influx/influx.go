@@ -25,7 +25,7 @@ func NewConfig() Config {
 }
 
 // Initialize creates and initializes a redis client.
-func (c *Config) Initialize(ctx context.Context, appName string) (*client.Client, error) {
+func (c *Config) Initialize(ctx context.Context, appName string) (client.Client, error) {
 
 	cli, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr:     c.URL,
@@ -43,11 +43,11 @@ func (c *Config) Initialize(ctx context.Context, appName string) (*client.Client
 		return nil, fmt.Errorf("cannot ping InfluxLocation server: %v", err.Error())
 	}
 
-	return &cli, nil
+	return cli, nil
 }
 
 // LoadAndInitialize loads configuration from file or environment and initializes.
-func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName string) (c Config, cli *client.Client, err error) {
+func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName string) (c Config, cli client.Client, err error) {
 	c, err = Load(ctx, cFile, prefix)
 	if err != nil {
 		return
