@@ -184,7 +184,6 @@ func (c *Config) AddNode(ctx context.Context, node []Node) (*MutationResult, err
 	}
 
 	if err := client.Run(ctx, req, &respData); err != nil {
-		log.Errorf("%+v", respData)
 		return nil, err
 	}
 
