@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/machinebox/graphql"
 	"github.com/onmi-bv/commons/confighelper"
@@ -24,7 +25,7 @@ type Config struct {
 	Host        string `mapstructure:"HOST"`
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	AuthSecret  string `mapstructure:"SECRET"`
-	HealthPath  string `mapstructure:"HEALTH_PATH"` //TODO: add healthcheck
+	HealthURL   string `mapstructure:"HEALTH_URL"` //TODO: add healthcheck
 }
 
 // LoadConfig loads the graphql host parameters from environment
@@ -238,4 +239,21 @@ func (c *Config) DeleteNodeByID(ctx context.Context, _type string, key string, i
 	}
 
 	return &res, nil
+}
+
+// Healthcheck checks if the graphql server is online using the health endpoint.
+func (c *Config) Healthcheck() error {
+	resp, err := http.Get(c.HealthURL)
+
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode >= 300 {
+		err := fmt.Errorf("got error code %d", resp.StatusCode)
+		log.Error(err)
+		return err
+	}
+
+	return nil
 }

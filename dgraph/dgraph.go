@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -19,6 +21,7 @@ type Config struct {
 	Host        string `mapstructure:"GRPC_HOST"`
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	AuthSecret  string `mapstructure:"SECRET"`
+	HealthURL   string `mapstructure:"URL"`
 }
 
 type authorizationCredentials struct {
@@ -99,4 +102,21 @@ func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (c Conf
 	cli, err = c.Initialize(ctx)
 
 	return
+}
+
+// Healthcheck checks if the dgraph server is online using the health endpoint.
+func (c *Config) Healthcheck() error {
+	resp, err := http.Get(c.HealthURL)
+
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode >= 300 {
+		err := fmt.Errorf("got error code %d", resp.StatusCode)
+		log.Error(err)
+		return err
+	}
+
+	return nil
 }
