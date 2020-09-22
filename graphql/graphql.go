@@ -24,6 +24,7 @@ type Config struct {
 	Host        string `mapstructure:"HOST"`
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	AuthSecret  string `mapstructure:"SECRET"`
+	HealthPath  string `mapstructure:"HEALTH_PATH"` //TODO: add healthcheck
 }
 
 // LoadConfig loads the graphql host parameters from environment
