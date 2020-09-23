@@ -3,6 +3,7 @@ package influx
 import (
 	"context"
 	"fmt"
+	"time"
 
 	client "github.com/influxdata/influxdb/client/v2"
 	"github.com/onmi-bv/commons/confighelper"
@@ -83,4 +84,10 @@ func Load(ctx context.Context, cFile string, prefix string) (c Config, err error
 	log.Debugln("...")
 
 	return
+}
+
+// Healthcheck checks if the dgraph server is online using the health endpoint.
+func (c *Config) Healthcheck() error {
+	_, _, err := c.Cli.Ping(1 * time.Second)
+	return err
 }
