@@ -22,6 +22,7 @@ type Config struct {
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	AuthSecret  string `mapstructure:"SECRET"`
 	HealthURL   string `mapstructure:"URL"`
+	Cli         *dgo.Dgraph
 }
 
 type authorizationCredentials struct {
@@ -100,6 +101,7 @@ func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (c Conf
 		return
 	}
 	cli, err = c.Initialize(ctx)
+	c.Cli = cli
 
 	return
 }
