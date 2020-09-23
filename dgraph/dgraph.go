@@ -90,6 +90,7 @@ func (c *Config) Initialize(ctx context.Context) (cli *dgo.Dgraph, err error) {
 
 	dgraphClient := api.NewDgraphClient(conn)
 	cli = dgo.NewDgraphClient(dgraphClient)
+	c.Cli = cli
 
 	return
 }
@@ -101,7 +102,6 @@ func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (cli *d
 		return
 	}
 	cli, err = c.Initialize(ctx)
-	c.Cli = cli
 
 	return
 }

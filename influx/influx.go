@@ -17,6 +17,7 @@ type Config struct {
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	Username    string `mapstructure:"USERNAME"`
 	Password    string `mapstructure:"PASSWORD"`
+	Cli         client.Client
 }
 
 // NewConfig creates a config struct with the connection default values
@@ -43,11 +44,13 @@ func (c *Config) Initialize(ctx context.Context) (client.Client, error) {
 		return nil, fmt.Errorf("cannot ping InfluxLocation server: %v", err.Error())
 	}
 
+	c.Cli = cli
+
 	return cli, nil
 }
 
 // LoadAndInitialize loads configuration from file or environment and initializes.
-func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (c Config, cli client.Client, err error) {
+func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (cli client.Client, c Config, err error) {
 	c, err = Load(ctx, cFile, prefix)
 	if err != nil {
 		return
