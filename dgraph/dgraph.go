@@ -95,7 +95,7 @@ func (c *Config) Initialize(ctx context.Context) (cli *dgo.Dgraph, err error) {
 }
 
 // LoadAndInitialize loads configuration from file or environment and initializes.
-func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (c Config, cli *dgo.Dgraph, err error) {
+func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (cli *dgo.Dgraph, c Config, err error) {
 	c, err = Load(ctx, cFile, prefix)
 	if err != nil {
 		return
