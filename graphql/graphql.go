@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/machinebox/graphql"
 	"github.com/onmi-bv/commons/confighelper"
@@ -66,17 +67,15 @@ func (c *Config) UpsertNode(ctx context.Context, node Node) (uid string, err err
 
 	// update record
 	res, err := c.UpdateNode(ctx, node)
-	if err != nil {
-		log.Errorf("could not update node: %v", err)
-		return node.GetID(), err
+	if err != nil && !strings.Contains(err.Error(), "already exists for type") {
+		return node.GetID(), fmt.Errorf("could not update node: %v", err)
 	}
 
 	// if no record was updated, add it
 	if res.NumUids == 0 {
 		res, err = c.AddNode(ctx, []Node{node})
 		if err != nil {
-			log.Errorf("could not add node: %v", err)
-			return node.GetID(), err
+			return node.GetID(), fmt.Errorf("could not add node: %v", err)
 		}
 		if res.NumUids != 1 {
 			log.Warningf("Could not add new node: %v %v", node.DType(), node.GetID())
