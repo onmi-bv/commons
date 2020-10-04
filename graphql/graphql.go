@@ -113,7 +113,7 @@ func (c *Config) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 	log.Tracef("graphql query: %v", query)
 
 	b, _ := json.MarshalIndent(node.Patch(), "  ", "  ")
-	log.Trace("graphql node: %v", string(b))
+	log.Tracef("graphql node: %v", string(b))
 
 	// create a client (safe to share across requests)
 	client := graphql.NewClient(c.Host)
