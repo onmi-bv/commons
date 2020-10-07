@@ -46,8 +46,9 @@ func Load(ctx context.Context, cFile string, prefix string) (Config, error) {
 	}
 
 	log.Debugf("# Dgraph config... ")
-	log.Debugf("Dgraph URI: %v", c.Host)
+	log.Debugf("Dgraph GRPC HOST: %v", c.Host)
 	log.Debugf("Dgraph auth enabled: %v", c.AuthEnabled)
+	log.Debugf("Dgraph health URL: %v", c.HealthURL)
 
 	if c.AuthSecret != "" {
 		log.Debugf("Dgraph secret: %v", "***")
