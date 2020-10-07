@@ -38,8 +38,9 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Config, error
 	}
 
 	log.Debugf("# GraphQL config... ")
-	log.Debugf("GraphQL URI: %v", c.Host)
+	log.Debugf("GraphQL Host: %v", c.Host)
 	log.Debugf("GraphQL auth enabled: %v", c.AuthEnabled)
+	log.Debugf("GraphQL health URL: %v", c.HealthURL)
 
 	if c.AuthSecret != "" {
 		log.Debugf("GraphQL secret: %v", "***")
