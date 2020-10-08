@@ -32,7 +32,7 @@ type Client struct {
 
 // LoadConfig loads the graphql host parameters from environment
 func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error) {
-	c := Config{}
+	c := Client{}
 
 	if err := confighelper.ReadConfig(cFile, prefix, &c); err != nil {
 		return c, err
