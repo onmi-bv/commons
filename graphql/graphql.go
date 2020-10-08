@@ -70,14 +70,14 @@ func (cli *Client) UpsertNode(ctx context.Context, node Node) (uid string, err e
 	log.Tracef("saving.. node: %v %v", node.DType(), node.GetID())
 
 	// update record
-	res, err := c.UpdateNode(ctx, node)
+	res, err := cli.UpdateNode(ctx, node)
 	if err != nil && !strings.Contains(err.Error(), "already exists for type") {
 		return node.GetID(), fmt.Errorf("could not update node: %v", err)
 	}
 
 	// if no record was updated, add it
 	if res.NumUids == 0 {
-		res, err = c.AddNode(ctx, []Node{node})
+		res, err = cli.AddNode(ctx, []Node{node})
 		if err != nil {
 			return node.GetID(), fmt.Errorf("could not add node: %v", err)
 		}
