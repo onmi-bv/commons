@@ -21,16 +21,17 @@ type Node interface {
 	Patch() interface{}  // Get the patchable fields for updating node.
 }
 
-// Config defines graphql host parameters.
-type Config struct {
+// Client defines graphql host parameters.
+type Client struct {
 	Host        string `mapstructure:"HOST"`
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	AuthSecret  string `mapstructure:"SECRET"`
-	HealthURL   string `mapstructure:"HEALTH_URL"` //TODO: add healthcheck
+	HealthURL   string `mapstructure:"HEALTH_URL"`
+	*graphql.Client
 }
 
 // LoadConfig loads the graphql host parameters from environment
-func LoadConfig(ctx context.Context, cFile string, prefix string) (Config, error) {
+func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error) {
 	c := Config{}
 
 	if err := confighelper.ReadConfig(cFile, prefix, &c); err != nil {
@@ -40,7 +41,6 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Config, error
 	log.Debugf("# GraphQL config... ")
 	log.Debugf("GraphQL Host: %v", c.Host)
 	log.Debugf("GraphQL auth enabled: %v", c.AuthEnabled)
-	log.Debugf("GraphQL health URL: %v", c.HealthURL)
 
 	if c.AuthSecret != "" {
 		log.Debugf("GraphQL secret: %v", "***")
@@ -48,7 +48,10 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Config, error
 		log.Debugf("GraphQL secret: %v", "<empty>")
 	}
 
+	log.Debugf("GraphQL health URL: %v", c.HealthURL)
 	log.Debugln("...")
+
+	c.Client = graphql.NewClient(c.Host)
 
 	return c, nil
 }
@@ -63,7 +66,7 @@ type MutationResult struct {
 }
 
 // UpsertNode adds or updates a node.
-func (c *Config) UpsertNode(ctx context.Context, node Node) (uid string, err error) {
+func (c *Client) UpsertNode(ctx context.Context, node Node) (uid string, err error) {
 	log.Tracef("saving.. node: %v %v", node.DType(), node.GetID())
 
 	// update record
@@ -91,7 +94,7 @@ func (c *Config) UpsertNode(ctx context.Context, node Node) (uid string, err err
 }
 
 // UpdateNode uses the update<type> GraphQL API to update a node.
-func (c *Config) UpdateNode(ctx context.Context, node Node) (*MutationResult, error) {
+func (c *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, error) {
 	log.Debugf("updating node: %v %v", node.DType(), node.GetID())
 
 	if node.GetID() == "" {
@@ -144,7 +147,7 @@ func (c *Config) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 // AddNode uses the Add<type> API to add new nodes.
 // If more than 1 node is added, make sure they are of same types and their IDs doesn't exist,
 // otherwise, use Upsert tp add them individually.
-func (c *Config) AddNode(ctx context.Context, node []Node) (*MutationResult, error) {
+func (c *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, error) {
 
 	if len(node) == 0 {
 		return nil, fmt.Errorf("addNodes requires nodes to add, but received none")
@@ -198,7 +201,7 @@ func (c *Config) AddNode(ctx context.Context, node []Node) (*MutationResult, err
 
 // DeleteNodeByID uses the Delete<type> API to delete a node.
 // Action is unreversable and should be used with care.
-func (c *Config) DeleteNodeByID(ctx context.Context, _type string, key string, id string) (*MutationResult, error) {
+func (c *Client) DeleteNodeByID(ctx context.Context, _type string, key string, id string) (*MutationResult, error) {
 
 	log.Debugf("deleting.. %v nodes: %v", _type, id)
 
@@ -242,7 +245,7 @@ func (c *Config) DeleteNodeByID(ctx context.Context, _type string, key string, i
 }
 
 // Healthcheck checks if the graphql server is online using the health endpoint.
-func (c *Config) Healthcheck() error {
+func (c *Client) Healthcheck() error {
 	resp, err := http.Get(c.HealthURL)
 
 	if err != nil {

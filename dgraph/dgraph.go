@@ -16,13 +16,13 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-// Config defines graphql host parameters.
-type Config struct {
+// Client defines graphql host parameters and client.
+type Client struct {
 	Host        string `mapstructure:"GRPC_HOST"`
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	AuthSecret  string `mapstructure:"SECRET"`
 	HealthURL   string `mapstructure:"URL"`
-	Cli         *dgo.Dgraph
+	*dgo.Dgraph
 }
 
 type authorizationCredentials struct {
@@ -38,8 +38,8 @@ func (a *authorizationCredentials) RequireTransportSecurity() bool {
 }
 
 // Load loads the graphql host parameters from environment
-func Load(ctx context.Context, cFile string, prefix string) (Config, error) {
-	c := Config{}
+func Load(ctx context.Context, cFile string, prefix string) (Client, error) {
+	c := Client{}
 
 	if err := confighelper.ReadConfig(cFile, prefix, &c); err != nil {
 		return c, err
@@ -62,7 +62,7 @@ func Load(ctx context.Context, cFile string, prefix string) (Config, error) {
 }
 
 // Initialize creates and initializes a redis client.
-func (c *Config) Initialize(ctx context.Context) (cli *dgo.Dgraph, err error) {
+func (c *Client) Initialize(ctx context.Context) (err error) {
 
 	var conn *grpc.ClientConn
 
@@ -72,7 +72,7 @@ func (c *Config) Initialize(ctx context.Context) (cli *dgo.Dgraph, err error) {
 	} else {
 		pool, err := x509.SystemCertPool()
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		tls := credentials.NewTLS(&tls.Config{
@@ -85,30 +85,29 @@ func (c *Config) Initialize(ctx context.Context) (cli *dgo.Dgraph, err error) {
 		conn, err = grpc.Dial(c.Host, grpc.WithTransportCredentials(tls), grpc.WithPerRPCCredentials(&auth))
 
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	dgraphClient := api.NewDgraphClient(conn)
-	cli = dgo.NewDgraphClient(dgraphClient)
-	c.Cli = cli
+	c.Dgraph = dgo.NewDgraphClient(dgraphClient)
 
 	return
 }
 
 // LoadAndInitialize loads configuration from file or environment and initializes.
-func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (cli *dgo.Dgraph, c Config, err error) {
-	c, err = Load(ctx, cFile, prefix)
+func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (cli Client, err error) {
+	cli, err = Load(ctx, cFile, prefix)
 	if err != nil {
 		return
 	}
-	cli, err = c.Initialize(ctx)
+	err = cli.Initialize(ctx)
 
 	return
 }
 
 // Healthcheck checks if the dgraph server is online using the health endpoint.
-func (c *Config) Healthcheck() error {
+func (c *Client) Healthcheck() error {
 	resp, err := http.Get(c.HealthURL)
 
 	if err != nil {
