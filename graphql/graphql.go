@@ -66,7 +66,7 @@ type MutationResult struct {
 }
 
 // UpsertNode adds or updates a node.
-func (c *Client) UpsertNode(ctx context.Context, node Node) (uid string, err error) {
+func (cli *Client) UpsertNode(ctx context.Context, node Node) (uid string, err error) {
 	log.Tracef("saving.. node: %v %v", node.DType(), node.GetID())
 
 	// update record
@@ -94,7 +94,7 @@ func (c *Client) UpsertNode(ctx context.Context, node Node) (uid string, err err
 }
 
 // UpdateNode uses the update<type> GraphQL API to update a node.
-func (c *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, error) {
+func (cli *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, error) {
 	log.Debugf("updating node: %v %v", node.DType(), node.GetID())
 
 	if node.GetID() == "" {
@@ -119,9 +119,6 @@ func (c *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 	b, _ := json.MarshalIndent(node.Patch(), "  ", "  ")
 	log.Tracef("graphql node: %v", string(b))
 
-	// create a client (safe to share across requests)
-	client := graphql.NewClient(c.Host)
-
 	// make a request
 	req := graphql.NewRequest(query)
 
@@ -132,7 +129,7 @@ func (c *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 	var respData map[string]struct {
 		NumUids int
 	}
-	if err := client.Run(ctx, req, &respData); err != nil {
+	if err := cli.Run(ctx, req, &respData); err != nil {
 		return nil, err
 	}
 
@@ -147,7 +144,7 @@ func (c *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 // AddNode uses the Add<type> API to add new nodes.
 // If more than 1 node is added, make sure they are of same types and their IDs doesn't exist,
 // otherwise, use Upsert tp add them individually.
-func (c *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, error) {
+func (cli *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, error) {
 
 	if len(node) == 0 {
 		return nil, fmt.Errorf("addNodes requires nodes to add, but received none")
@@ -174,9 +171,6 @@ func (c *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, err
 	b, _ := json.MarshalIndent(node, "  ", "  ")
 	log.Tracef("graphql node: %v", string(b))
 
-	// create a client (safe to share across requests)
-	client := graphql.NewClient(c.Host)
-
 	// make a request
 	req := graphql.NewRequest(query)
 
@@ -188,7 +182,7 @@ func (c *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, err
 		NumUids int
 	}
 
-	if err := client.Run(ctx, req, &respData); err != nil {
+	if err := cli.Run(ctx, req, &respData); err != nil {
 		return nil, err
 	}
 
@@ -201,7 +195,7 @@ func (c *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, err
 
 // DeleteNodeByID uses the Delete<type> API to delete a node.
 // Action is unreversable and should be used with care.
-func (c *Client) DeleteNodeByID(ctx context.Context, _type string, key string, id string) (*MutationResult, error) {
+func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, key string, id string) (*MutationResult, error) {
 
 	log.Debugf("deleting.. %v nodes: %v", _type, id)
 
@@ -219,9 +213,6 @@ func (c *Client) DeleteNodeByID(ctx context.Context, _type string, key string, i
 
 	log.Tracef("graphql query: %v", query)
 
-	// create a client (safe to share across requests)
-	client := graphql.NewClient(c.Host)
-
 	// make a request
 	req := graphql.NewRequest(query)
 
@@ -233,7 +224,7 @@ func (c *Client) DeleteNodeByID(ctx context.Context, _type string, key string, i
 		NumUids int
 	}
 
-	if err := client.Run(ctx, req, &respData); err != nil {
+	if err := cli.Run(ctx, req, &respData); err != nil {
 		return nil, err
 	}
 
@@ -245,8 +236,8 @@ func (c *Client) DeleteNodeByID(ctx context.Context, _type string, key string, i
 }
 
 // Healthcheck checks if the graphql server is online using the health endpoint.
-func (c *Client) Healthcheck() error {
-	resp, err := http.Get(c.HealthURL)
+func (cli *Client) Healthcheck() error {
+	resp, err := http.Get(cli.HealthURL)
 
 	if err != nil {
 		return err
