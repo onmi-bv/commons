@@ -106,6 +106,23 @@ func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (cli Cl
 	return
 }
 
+type Configuration struct {
+	Path   string
+	Prefix string
+}
+
+func Init(ctx context.Context, conf Configuration) (Client, error) {
+
+	client, err := Load(ctx, conf.Path, conf.Prefix)
+	if err != nil {
+		return client, fmt.Errorf("Load: %v", err)
+	}
+
+	err = client.Initialize(ctx)
+
+	return client, err
+}
+
 // Healthcheck checks if the dgraph server is online using the health endpoint.
 func (c *Client) Healthcheck() error {
 	resp, err := http.Get(c.HealthURL)
