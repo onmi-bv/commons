@@ -20,7 +20,7 @@ type Job struct {
 
 // Find a pending task to be processed.
 // Jobs are locked before returning.
-func Find(ctx context.Context, r *redis.Client, jobNS string, lockNS string, uuid string, timeout int) (jChan chan Job, err error) {
+func Find(ctx context.Context, r redis.Cmdable, jobNS string, lockNS string, uuid string, timeout int) (jChan chan Job, err error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "FindJob")
 	defer span.Finish()
 
@@ -80,7 +80,7 @@ func Find(ctx context.Context, r *redis.Client, jobNS string, lockNS string, uui
 // Unlock attempts to remove the lock on a key so long as the value matches.
 // If the lock cannot be removed, either because the key has already expired or
 // because the value was incorrect, an error will be returned.
-func Unlock(ctx context.Context, r *redis.Client, lockNS string, key string, uuid string) (bool, error) {
+func Unlock(ctx context.Context, r redis.Cmdable, lockNS string, key string, uuid string) (bool, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "UnlockJob")
 	defer span.Finish()
 
@@ -101,7 +101,7 @@ func Unlock(ctx context.Context, r *redis.Client, lockNS string, key string, uui
 }
 
 // Remove removes job from redis
-func Remove(ctx context.Context, r *redis.Client, jobNS string, j Job) (bool, error) {
+func Remove(ctx context.Context, r redis.Cmdable, jobNS string, j Job) (bool, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "RemoveJob")
 	defer span.Finish()
 
@@ -126,7 +126,7 @@ func Remove(ctx context.Context, r *redis.Client, jobNS string, j Job) (bool, er
 
 // ExLock sets the expiry of already owned lock
 // TODO: test
-func ExLock(ctx context.Context, r *redis.Client, key string, uuid string, timeout int) (bool, error) {
+func ExLock(ctx context.Context, r redis.Cmdable, key string, uuid string, timeout int) (bool, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ExLock")
 	defer span.Finish()
 
@@ -147,7 +147,7 @@ func ExLock(ctx context.Context, r *redis.Client, key string, uuid string, timeo
 }
 
 // Add adds the update to redis
-func Add(ctx context.Context, r *redis.Client, jobNS string, j Job) error {
+func Add(ctx context.Context, r redis.Cmdable, jobNS string, j Job) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "AddJob")
 	defer span.Finish()
 

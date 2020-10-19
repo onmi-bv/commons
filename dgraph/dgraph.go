@@ -95,22 +95,13 @@ func (c *Client) Initialize(ctx context.Context) (err error) {
 	return
 }
 
-// LoadAndInitialize loads configuration from file or environment and initializes.
-func LoadAndInitialize(ctx context.Context, cFile string, prefix string) (cli Client, err error) {
-	cli, err = Load(ctx, cFile, prefix)
-	if err != nil {
-		return
-	}
-	err = cli.Initialize(ctx)
-
-	return
-}
-
+// Configuration used for initialization
 type Configuration struct {
-	Path   string
-	Prefix string
+	Path   string // Path to config file.
+	Prefix string // Prefix to environment variables.
 }
 
+// Init client
 func Init(ctx context.Context, conf Configuration) (Client, error) {
 
 	client, err := Load(ctx, conf.Path, conf.Prefix)
