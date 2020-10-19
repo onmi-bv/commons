@@ -17,7 +17,7 @@ type Client struct {
 	AuthEnabled        bool   `mapstructure:"AUTH_ENABLED"`
 	SentinelEnabled    bool   `mapstructure:"SENTINEL_ENABLED"`
 	SentinelMasterName string `mapstructure:"SENTINEL_MASTER_NAME"`
-	redis.Cmdable
+	redis.UniversalClient
 }
 
 // Configuration used for initialization
@@ -48,7 +48,7 @@ func (c *Client) Initialize(ctx context.Context) error {
 	if c.AuthEnabled {
 		redisOpts.Password = c.Password
 	}
-	c.Cmdable = redis.NewUniversalClient(redisOpts)
+	c.UniversalClient = redis.NewUniversalClient(redisOpts)
 	_, err := c.Ping(ctx).Result()
 
 	return err
