@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -77,7 +76,7 @@ func (c *Client) Initialize(ctx context.Context) (err error) {
 
 		tls := credentials.NewTLS(&tls.Config{
 			RootCAs:    pool,
-			ServerName: strings.Split(c.Host, ":")[0],
+			ServerName: c.Host,
 		})
 
 		auth := authorizationCredentials{token: c.AuthSecret}
