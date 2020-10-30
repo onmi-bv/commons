@@ -107,7 +107,7 @@ func (cli *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, 
 	query := `
 	mutation update` + dtype + `Mutation ($set: ` + dtype + `Patch) {
 		update` + dtype + `(input: {
-			filter: {` + node.Key() + `: {eq: "` + node.GetID() + `"}},
+			filter: {` + node.Key() + `: {eq: "` + node.GetID() + `"}}
 			set: $set
 		}){
 			numUids
