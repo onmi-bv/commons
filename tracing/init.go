@@ -1,31 +1,91 @@
 package tracing
 
 import (
-	"fmt"
-	"io"
+	"context"
 
-	opentracing "github.com/opentracing/opentracing-go"
-	jaegercfg "github.com/uber/jaeger-client-go/config"
+	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
+	"github.com/onmi-bv/commons/confighelper"
+	"go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel/sdk/export/trace"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"google.golang.org/protobuf/internal/errors"
 )
 
-// Init returns an instance of Jaeger Tracer that samples 100% of traces and logs all spans to stdout.
-func Init(service string) (opentracing.Tracer, io.Closer, error) {
+// ExporterType defines the supported exporters
+type ExporterType string
 
-	cfg, err := jaegercfg.FromEnv()
-	if err != nil {
-		return nil, nil, fmt.Errorf("cannot parse Jaeger env vars: %v", err)
+// Exporter types.
+const (
+	JeagerExporter      ExporterType = "jaeger"
+	StackdriverExporter ExporterType = "stackdriver"
+)
+
+type Configuration struct {
+	// Exporter type supported by commons
+	Exporter ExporterType
+
+	// ProjectID is the identifier of the Stackdriver
+	// project the user is uploading the stats data to.
+	// If not set, this will default to your "Application Default Credentials".
+	// For details see: https://developers.google.com/accounts/docs/application-default-credentials.
+	//
+	// It will be used in the project_id label of a Stackdriver monitored
+	// resource if the resource does not inherently belong to a specific
+	// project, e.g. on-premise resource like k8s_container or generic_task.
+	ProjectID string
+
+	// Location is the identifier of the GCP or AWS cloud region/zone in which
+	// the data for a resource is stored.
+	// If not set, it will default to the location provided by the metadata server.
+	//
+	// It will be used in the location label of a Stackdriver monitored resource
+	// if the resource does not inherently belong to a specific project, e.g.
+	// on-premise resource like k8s_container or generic_task.
+	Location string
+
+	// MaxNumberOfWorkers sets the maximum number of go rountines that send requests
+	// to Cloud Trace. The minimum number of workers is 1.
+	MaxNumberOfWorkers int
+}
+
+// Init initializes opentelemetry. The returned Tracer is ready to use.
+// The returned Exporter will be useful for flushing spans before exiting the process.
+func Init(ctx context.Context) (err error) {
+
+	// init config params
+	config := Configuration{}
+	if err := confighelper.ReadConfig("app.conf", "", &config); err != nil {
+		return err
 	}
 
-	if cfg.ServiceName == "" {
-		cfg.ServiceName = service
+	// create exporter
+	var exporter trace.SpanExporter
+
+	switch config.Exporter {
+	// Create exporter for stackdriver
+	case StackdriverExporter:
+		exporter, err = texporter.NewExporter(
+			texporter.WithContext(ctx),
+			texporter.WithProjectID(string(config.ProjectID)),
+			texporter.WithMaxNumberOfWorkers(config.MaxNumberOfWorkers),
+		)
+		if err != nil {
+			return errors.Wrap(err, "cannot init stackdriver exporter")
+		}
+
+	default:
 	}
 
-	tracer, closer, err := cfg.NewTracer()
-	if err != nil {
-		return nil, nil, err
-	}
+	// Create trace provider with the exporter.
+	//
+	// By default it uses AlwaysSample() which samples all traces.
+	// In a production environment or high QPS setup please use
+	// ProbabilitySampler set at the desired probability.
+	// Example:
+	//   config := sdktrace.Config{DefaultSampler:sdktrace.ProbabilitySampler(0.0001)}
+	//   tp, err := sdktrace.NewProvider(sdktrace.WithConfig(config), ...)
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
+	global.SetTracerProvider(tp)
 
-	opentracing.SetGlobalTracer(tracer)
-
-	return tracer, closer, nil
+	return err
 }
