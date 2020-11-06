@@ -8,7 +8,6 @@ import (
 	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/sdk/export/trace"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"google.golang.org/protobuf/internal/errors"
 )
 
 // ExporterType defines the supported exporters
