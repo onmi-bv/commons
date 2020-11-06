@@ -2,7 +2,7 @@ package tracing
 
 import (
 	"context"
-
+	"fmt"
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/onmi-bv/commons/confighelper"
 	"go.opentelemetry.io/otel/api/global"
@@ -69,7 +69,7 @@ func Init(ctx context.Context) (err error) {
 			texporter.WithMaxNumberOfWorkers(config.MaxNumberOfWorkers),
 		)
 		if err != nil {
-			return errors.Wrap(err, "cannot init stackdriver exporter")
+			return fmt.Errorf("cannot init stackdriver exporter: %v", err)
 		}
 
 	default:
