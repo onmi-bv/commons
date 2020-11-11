@@ -3,9 +3,11 @@ package tracing
 import (
 	"context"
 	"fmt"
+
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/onmi-bv/commons/confighelper"
 	"go.opentelemetry.io/otel/api/global"
+	apitrace "go.opentelemetry.io/otel/api/trace"
 	"go.opentelemetry.io/otel/sdk/export/trace"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
@@ -49,12 +51,13 @@ type Configuration struct {
 
 // Init initializes opentelemetry. The returned Tracer is ready to use.
 // The returned Exporter will be useful for flushing spans before exiting the process.
-func Init(ctx context.Context) (err error) {
+func Init(ctx context.Context, name string) (apitrace.Tracer, error) {
 
 	// init config params
 	config := Configuration{}
-	if err := confighelper.ReadConfig("app.conf", "", &config); err != nil {
-		return err
+	err := confighelper.ReadConfig("app.conf", "", &config)
+	if err != nil {
+		return nil, err
 	}
 
 	// create exporter
@@ -69,7 +72,7 @@ func Init(ctx context.Context) (err error) {
 			texporter.WithMaxNumberOfWorkers(config.MaxNumberOfWorkers),
 		)
 		if err != nil {
-			return fmt.Errorf("cannot init stackdriver exporter: %v", err)
+			return nil, fmt.Errorf("cannot init stackdriver exporter: %v", err)
 		}
 
 	default:
@@ -86,5 +89,7 @@ func Init(ctx context.Context) (err error) {
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	global.SetTracerProvider(tp)
 
-	return err
+	tracer := global.TracerProvider().Tracer(name)
+
+	return tracer, err
 }
