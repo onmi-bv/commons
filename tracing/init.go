@@ -21,6 +21,7 @@ const (
 	StackdriverExporter ExporterType = "stackdriver"
 )
 
+// Configuration ...
 type Configuration struct {
 	// Exporter type supported by commons
 	Exporter ExporterType
