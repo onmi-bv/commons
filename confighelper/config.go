@@ -2,34 +2,13 @@ package confighelper
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"reflect"
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
-
-func parseURL() mapstructure.DecodeHookFunc {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
-		if f.Kind() != reflect.String || t.Kind() != reflect.Struct {
-			return data, nil
-		}
-
-		dataVal := data.(string)
-		if strings.Contains(dataVal, "http") {
-			url, err := url.Parse(dataVal)
-			if err != nil {
-				return nil, err
-			}
-			return url, nil
-		}
-
-		return data, nil
-	}
-}
 
 // BindEnvs binds the mapstructure to the environment variables
 func bindEnvs(iface interface{}, parts ...string) {

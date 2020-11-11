@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/machinebox/graphql"
 	"github.com/onmi-bv/commons/confighelper"
@@ -23,10 +22,10 @@ type Node interface {
 
 // Client defines graphql host parameters.
 type Client struct {
-	Host        *url.URL `mapstructure:"HOST"`
-	HealthURL   *url.URL `mapstructure:"HEALTH_URL"`
-	AuthEnabled bool     `mapstructure:"AUTH_ENABLED"`
-	AuthSecret  string   `mapstructure:"SECRET"`
+	Host        string `mapstructure:"HOST"`
+	HealthURL   string `mapstructure:"HEALTH_URL"`
+	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
+	AuthSecret  string `mapstructure:"SECRET"`
 	*graphql.Client
 }
 
