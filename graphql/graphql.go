@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
+	"net/url"
 
 	"github.com/machinebox/graphql"
 	"github.com/onmi-bv/commons/confighelper"
@@ -23,10 +23,10 @@ type Node interface {
 
 // Client defines graphql host parameters.
 type Client struct {
-	Host        string `mapstructure:"HOST"`
-	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
-	AuthSecret  string `mapstructure:"SECRET"`
-	HealthURL   string `mapstructure:"HEALTH_URL"`
+	Host        *url.URL `mapstructure:"HOST"`
+	HealthURL   *url.URL `mapstructure:"HEALTH_URL"`
+	AuthEnabled bool     `mapstructure:"AUTH_ENABLED"`
+	AuthSecret  string   `mapstructure:"SECRET"`
 	*graphql.Client
 }
 
@@ -51,7 +51,7 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 	log.Debugf("GraphQL health URL: %v", c.HealthURL)
 	log.Debugln("...")
 
-	c.Client = graphql.NewClient(c.Host)
+	c.Client = graphql.NewClient(c.Host.String())
 
 	return c, nil
 }
@@ -71,8 +71,8 @@ func (cli *Client) UpsertNode(ctx context.Context, node Node) (uid string, err e
 
 	// update record
 	res, err := cli.UpdateNode(ctx, node)
-	if err != nil && !strings.Contains(err.Error(), "already exists for type") {
-		return node.GetID(), fmt.Errorf("could not update node: %v", err)
+	if err != nil {
+		log.Warningf("could not update node: %v", err)
 	}
 
 	// if no record was updated, add it
@@ -237,7 +237,7 @@ func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, key string,
 
 // Healthcheck checks if the graphql server is online using the health endpoint.
 func (cli *Client) Healthcheck() error {
-	resp, err := http.Get(cli.HealthURL)
+	resp, err := http.Get(cli.HealthURL.String())
 
 	if err != nil {
 		return err
