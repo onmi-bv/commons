@@ -38,7 +38,7 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 	}
 
 	log.Debugf("# GraphQL config... ")
-	log.Debugf("GraphQL Host: %v", c.Host.String())
+	log.Debugf("GraphQL Host: %v", c.Host)
 	log.Debugf("GraphQL auth enabled: %v", c.AuthEnabled)
 
 	if c.AuthSecret != "" {
@@ -50,7 +50,7 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 	log.Debugf("GraphQL health URL: %v", c.HealthURL)
 	log.Debugln("...")
 
-	c.Client = graphql.NewClient(c.Host.String())
+	c.Client = graphql.NewClient(c.Host)
 
 	return c, nil
 }
@@ -236,7 +236,7 @@ func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, key string,
 
 // Healthcheck checks if the graphql server is online using the health endpoint.
 func (cli *Client) Healthcheck() error {
-	resp, err := http.Get(cli.HealthURL.String())
+	resp, err := http.Get(cli.HealthURL)
 
 	if err != nil {
 		return err
