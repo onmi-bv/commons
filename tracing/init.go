@@ -24,7 +24,7 @@ const (
 // Configuration ...
 type Configuration struct {
 	// Exporter type supported by commons
-	Exporter ExporterType
+	Exporter ExporterType `mapstructure:"EXPORTER"`
 
 	// ProjectID is the identifier of the Stackdriver
 	// project the user is uploading the stats data to.
@@ -34,7 +34,7 @@ type Configuration struct {
 	// It will be used in the project_id label of a Stackdriver monitored
 	// resource if the resource does not inherently belong to a specific
 	// project, e.g. on-premise resource like k8s_container or generic_task.
-	ProjectID string
+	ProjectID string `mapstructure:"PROJECT_ID"`
 
 	// Location is the identifier of the GCP or AWS cloud region/zone in which
 	// the data for a resource is stored.
@@ -43,11 +43,11 @@ type Configuration struct {
 	// It will be used in the location label of a Stackdriver monitored resource
 	// if the resource does not inherently belong to a specific project, e.g.
 	// on-premise resource like k8s_container or generic_task.
-	Location string
+	Location string `mapstructure:"LOCATION"`
 
 	// MaxNumberOfWorkers sets the maximum number of go rountines that send requests
 	// to Cloud Trace. The minimum number of workers is 1.
-	MaxNumberOfWorkers int
+	MaxNumberOfWorkers int `mapstructure:"MAX_NUMBER_OF_WORKERS"`
 }
 
 // Init initializes opentelemetry. The returned Tracer is ready to use.
