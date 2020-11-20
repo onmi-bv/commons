@@ -2,10 +2,10 @@ package tracing
 
 import (
 	"context"
-	"fmt"
 
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/onmi-bv/commons/confighelper"
+	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/api/global"
 	apitrace "go.opentelemetry.io/otel/api/trace"
 	"go.opentelemetry.io/otel/sdk/export/trace"
@@ -73,10 +73,11 @@ func Init(ctx context.Context, name string) (*apitrace.Tracer, error) {
 			texporter.WithMaxNumberOfWorkers(config.MaxNumberOfWorkers),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("cannot init stackdriver exporter: %v", err)
+			return nil, errors.Wrap(err, "cannot init stackdriver exporter")
 		}
 
 	default:
+		return nil, errors.New("unsupported exporter")
 	}
 
 	// Create trace provider with the exporter.
