@@ -52,7 +52,7 @@ type Configuration struct {
 
 // Init initializes opentelemetry. The returned Tracer is ready to use.
 // The returned Exporter will be useful for flushing spans before exiting the process.
-func Init(ctx context.Context, name string) (*apitrace.Tracer, error) {
+func Init(ctx context.Context, name string) (apitrace.Tracer, error) {
 
 	// init config params
 	config := Configuration{
@@ -95,5 +95,5 @@ func Init(ctx context.Context, name string) (*apitrace.Tracer, error) {
 
 	tracer := global.TracerProvider().Tracer(name)
 
-	return &tracer, err
+	return tracer, err
 }
