@@ -56,7 +56,7 @@ func Init(ctx context.Context, name string) (*apitrace.Tracer, error) {
 
 	// init config params
 	config := Configuration{}
-	err := confighelper.ReadConfig("app.conf", "", &config)
+	err := confighelper.ReadConfig("app.conf", "tracing", &config)
 	if err != nil {
 		return nil, err
 	}
