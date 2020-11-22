@@ -54,13 +54,15 @@ type Configuration struct {
 // The returned Exporter will be useful for flushing spans before exiting the process.
 func Init(ctx context.Context, name string) (apitrace.Tracer, error) {
 
+	tracer := global.Tracer(name)
+
 	// init config params
 	config := Configuration{
 		Exporter: StackdriverExporter,
 	}
 	err := confighelper.ReadConfig("app.conf", "tracing", &config)
 	if err != nil {
-		return nil, err
+		return tracer, err
 	}
 
 	// create exporter
@@ -75,11 +77,11 @@ func Init(ctx context.Context, name string) (apitrace.Tracer, error) {
 			texporter.WithMaxNumberOfWorkers(config.MaxNumberOfWorkers),
 		)
 		if err != nil {
-			return nil, errors.Wrap(err, "cannot init stackdriver exporter")
+			return tracer, errors.Wrap(err, "cannot init stackdriver exporter")
 		}
 
 	default:
-		return nil, errors.New("unsupported exporter")
+		return tracer, errors.New("unsupported exporter")
 	}
 
 	// Create trace provider with the exporter.
@@ -93,7 +95,7 @@ func Init(ctx context.Context, name string) (apitrace.Tracer, error) {
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	global.SetTracerProvider(tp)
 
-	tracer := global.TracerProvider().Tracer(name)
+	tracer = global.TracerProvider().Tracer(name)
 
 	return tracer, err
 }
