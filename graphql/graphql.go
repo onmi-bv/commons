@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/machinebox/graphql"
 	"github.com/onmi-bv/commons/confighelper"
@@ -62,6 +63,23 @@ type MutationResult struct {
 	Errors  []struct {
 		Message string
 	}
+}
+
+// RetryRun makes request with retries
+func (cli *Client) RetryRun(ctx context.Context, req *graphql.Request, resp interface{}, retry int) error {
+	var err error
+	for i := 0; i < retry; i++ {
+		err = cli.Run(ctx, req, resp)
+
+		if err != nil && strings.Contains(err.Error(), "i/o timeout") {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		break
+	}
+	return err
 }
 
 // UpsertNode adds or updates a node.
@@ -128,7 +146,8 @@ func (cli *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, 
 	var respData map[string]struct {
 		NumUids int
 	}
-	if err := cli.Run(ctx, req, &respData); err != nil {
+
+	if err := cli.RetryRun(ctx, req, &respData, 3); err != nil {
 		return nil, err
 	}
 
@@ -181,7 +200,7 @@ func (cli *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, e
 		NumUids int
 	}
 
-	if err := cli.Run(ctx, req, &respData); err != nil {
+	if err := cli.RetryRun(ctx, req, &respData, 3); err != nil {
 		return nil, err
 	}
 
@@ -223,7 +242,7 @@ func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, key string,
 		NumUids int
 	}
 
-	if err := cli.Run(ctx, req, &respData); err != nil {
+	if err := cli.RetryRun(ctx, req, &respData, 3); err != nil {
 		return nil, err
 	}
 
