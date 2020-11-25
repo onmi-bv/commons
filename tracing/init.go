@@ -50,9 +50,12 @@ type Configuration struct {
 	MaxNumberOfWorkers int `mapstructure:"MAX_NUMBER_OF_WORKERS"`
 }
 
+// Tracer type
+type Tracer trace.Tracer
+
 // Init initializes opentelemetry. The returned Tracer is ready to use.
 // The returned Exporter will be useful for flushing spans before exiting the process.
-func Init(ctx context.Context, name string) (trace.Tracer, error) {
+func Init(ctx context.Context, name string) (Tracer, error) {
 
 	tracer := otel.Tracer(name)
 
