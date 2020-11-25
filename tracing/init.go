@@ -6,10 +6,10 @@ import (
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/onmi-bv/commons/confighelper"
 	"github.com/pkg/errors"
-	"go.opentelemetry.io/otel/api/global"
-	apitrace "go.opentelemetry.io/otel/api/trace"
-	"go.opentelemetry.io/otel/sdk/export/trace"
+
+	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // ExporterType defines the supported exporters
@@ -52,9 +52,9 @@ type Configuration struct {
 
 // Init initializes opentelemetry. The returned Tracer is ready to use.
 // The returned Exporter will be useful for flushing spans before exiting the process.
-func Init(ctx context.Context, name string) (apitrace.Tracer, error) {
+func Init(ctx context.Context, name string) (trace.Tracer, error) {
 
-	tracer := global.Tracer(name)
+	tracer := otel.Tracer(name)
 
 	// init config params
 	config := Configuration{
@@ -66,7 +66,7 @@ func Init(ctx context.Context, name string) (apitrace.Tracer, error) {
 	}
 
 	// create exporter
-	var exporter trace.SpanExporter
+	var exporter *texporter.Exporter
 
 	switch config.Exporter {
 	// Create exporter for stackdriver
@@ -93,9 +93,9 @@ func Init(ctx context.Context, name string) (apitrace.Tracer, error) {
 	//   config := sdktrace.Config{DefaultSampler:sdktrace.ProbabilitySampler(0.0001)}
 	//   tp, err := sdktrace.NewProvider(sdktrace.WithConfig(config), ...)
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	global.SetTracerProvider(tp)
+	otel.SetTracerProvider(tp)
 
-	tracer = global.TracerProvider().Tracer(name)
+	tracer = tp.Tracer(name)
 
 	return tracer, err
 }
