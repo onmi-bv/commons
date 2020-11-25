@@ -233,6 +233,8 @@ github.com/onmi-bv/commons/confighelper v0.0.0-20201120124102-a948372a3911 h1:Yv
 github.com/onmi-bv/commons/confighelper v0.0.0-20201120124102-a948372a3911/go.mod h1:K4EbvU7wiZjfB5MehEdzYTS7469fsoExIv/7VX+kLf0=
 github.com/onmi-bv/commons/confighelper v0.0.0-20201123153211-3b53607066e7 h1:9jf+0xgt3gA7G8/NkZiVTAGvPJqou5FN/PDAZtTnrXc=
 github.com/onmi-bv/commons/confighelper v0.0.0-20201123153211-3b53607066e7/go.mod h1:K4EbvU7wiZjfB5MehEdzYTS7469fsoExIv/7VX+kLf0=
+github.com/onmi-bv/commons/confighelper v0.0.0-20201125123049-9a26645bdae4 h1:eIVDmmrg8CkyT1CMLyKaP8KlLMUfoAaLwQ3g5of8skc=
+github.com/onmi-bv/commons/confighelper v0.0.0-20201125123049-9a26645bdae4/go.mod h1:K4EbvU7wiZjfB5MehEdzYTS7469fsoExIv/7VX+kLf0=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pelletier/go-toml v1.2.0 h1:T5zMGML61Wp+FlcbWjRDT7yAxhJNAiPPLOFECq181zc=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
@@ -633,6 +635,8 @@ gopkg.in/yaml.v2 v2.2.4 h1:/eiJrUcujPVeJ3xlSWaiNi3uSVmDGBK1pDHUHAnao1I=
 gopkg.in/yaml.v2 v2.2.4/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.3.0 h1:clyUAQHOM3G0M3f5vQj7LuJrETvjVot3Z5el9nffUtU=
 gopkg.in/yaml.v2 v2.3.0/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
+gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=

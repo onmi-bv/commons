@@ -15,8 +15,8 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-// Config defines application configuration
-type Config struct {
+// Logger defines application configuration
+type Logger struct {
 	// Output sets the output destination for the logger. I.e., stderr, stdout, discard
 	Output string `mapstructure:"OUTPUT"`
 
@@ -49,11 +49,14 @@ type Config struct {
 
 	// Slack configures slack integration
 	Slack slackrus.Hook
+
+	// logger
+	*logger.Logger
 }
 
-// NewConfig creates a config struct with log default values
-func NewConfig() Config {
-	return Config{
+// NewLogger creates a config struct with log default values
+func NewLogger() Logger {
+	return Logger{
 		Level:             "info",
 		External:          false,
 		FluentdHost:       "127.0.0.1",
@@ -66,9 +69,31 @@ func NewConfig() Config {
 	}
 }
 
+// Configuration used for initialization
+type Configuration struct {
+	AppName string
+	Version string
+	Path    string // Path to config file.
+	Prefix  string // Prefix to environment variables.
+}
+
+// Init ...
+func Init(ctx context.Context, conf Configuration) (Logger, error) {
+	mLogger := NewLogger()
+
+	err := confighelper.ReadConfig(conf.Path, conf.Prefix, &mLogger)
+	if err != nil {
+		return mLogger, err
+	}
+
+	mLogger.Logger, err = mLogger.Initialize(ctx, conf.AppName, conf.Version)
+
+	return mLogger, err
+}
+
 // LoadAndInitialize loads configuration from file or environment and initializes.
-func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName string, version string) (mConfig Config, mLogger *logger.Logger, err error) {
-	mConfig = NewConfig()
+func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName string, version string) (mConfig Logger, mLogger *logger.Logger, err error) {
+	mConfig = NewLogger()
 
 	err = confighelper.ReadConfig(cFile, prefix, &mConfig)
 	if err != nil {
@@ -80,7 +105,7 @@ func LoadAndInitialize(ctx context.Context, cFile string, prefix string, appName
 }
 
 // Initialize implements logic for application log configuration
-func (config *Config) Initialize(ctx context.Context, appName string, appVersion string) (*logger.Logger, error) {
+func (config *Logger) Initialize(ctx context.Context, appName string, appVersion string) (*logger.Logger, error) {
 
 	// * set log level
 	logLevel, err := logger.ParseLevel(config.Level)

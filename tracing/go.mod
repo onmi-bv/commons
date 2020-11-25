@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/onmi-bv/commons/confighelper v0.0.0-20201123153211-3b53607066e7
+	github.com/onmi-bv/commons/confighelper v0.0.0-20201125123049-9a26645bdae4
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.4.1 // indirect
@@ -25,5 +25,5 @@ require (
 	google.golang.org/genproto v0.0.0-20201119123407-9b1e624d6bc4 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
-	gopkg.in/yaml.v2 v2.3.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
