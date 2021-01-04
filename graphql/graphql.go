@@ -93,7 +93,7 @@ func (cli *Client) UpsertNode(ctx context.Context, node Node) (uid string, err e
 	}
 
 	// if no record was updated, add it
-	if res.NumUids == 0 {
+	if res == nil || res.NumUids == 0 {
 		res, err = cli.AddNode(ctx, []Node{node})
 		if err != nil {
 			return node.GetID(), fmt.Errorf("could not add node: %v", err)
@@ -103,7 +103,7 @@ func (cli *Client) UpsertNode(ctx context.Context, node Node) (uid string, err e
 		}
 	}
 
-	if res.NumUids > 1 {
+	if res != nil && res.NumUids > 1 {
 		log.Warningf("Inconsistent db state, multiple entries for node after add mu: %v %v, numUids=%v", node.DType(), node.GetID(), res.NumUids)
 	}
 
