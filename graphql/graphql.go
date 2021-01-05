@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/onmi-bv/commons/confighelper"
 	graphqlapi "github.com/onmi-bv/commons/graphql/api"
@@ -72,6 +73,7 @@ func (cli *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp i
 		err = cli.Run(ctx, req, resp)
 
 		if err != nil && strings.Contains(err.Error(), "i/o timeout") {
+			time.Sleep(1 * time.Second)
 			continue
 		}
 		if err != nil {
