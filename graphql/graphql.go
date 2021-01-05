@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/machinebox/graphql"
 	"github.com/onmi-bv/commons/confighelper"
+	graphqlapi "github.com/onmi-bv/commons/graphql/api"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -27,7 +27,7 @@ type Client struct {
 	HealthURL   string `mapstructure:"HEALTH_URL"`
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	AuthSecret  string `mapstructure:"SECRET"`
-	*graphql.Client
+	*graphqlapi.Client
 }
 
 // LoadConfig loads the graphql host parameters from environment
