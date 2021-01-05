@@ -51,7 +51,7 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 	log.Debugf("GraphQL health URL: %v", c.HealthURL)
 	log.Debugln("...")
 
-	c.Client = graphql.NewClient(c.Host)
+	c.Client = graphqlapi.NewClient(c.Host)
 
 	return c, nil
 }
@@ -66,7 +66,7 @@ type MutationResult struct {
 }
 
 // RetryRun makes request with retries
-func (cli *Client) RetryRun(ctx context.Context, req *graphql.Request, resp interface{}, retry int) error {
+func (cli *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp interface{}, retry int) error {
 	var err error
 	for i := 0; i < retry; i++ {
 		err = cli.Run(ctx, req, resp)
@@ -137,7 +137,7 @@ func (cli *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, 
 	log.Tracef("graphql node: %v", string(b))
 
 	// make a request
-	req := graphql.NewRequest(query)
+	req := graphqlapi.NewRequest(query)
 
 	// set any variables
 	req.Var("set", node.Patch())
@@ -190,7 +190,7 @@ func (cli *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, e
 	log.Tracef("graphql node: %v", string(b))
 
 	// make a request
-	req := graphql.NewRequest(query)
+	req := graphqlapi.NewRequest(query)
 
 	// set any variables
 	req.Var("set", node)
@@ -232,7 +232,7 @@ func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, key string,
 	log.Tracef("graphql query: %v", query)
 
 	// make a request
-	req := graphql.NewRequest(query)
+	req := graphqlapi.NewRequest(query)
 
 	// set any variables
 	req.Var("id", id)
