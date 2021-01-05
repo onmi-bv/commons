@@ -73,6 +73,7 @@ func (cli *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp i
 		err = cli.Run(ctx, req, resp)
 
 		if err != nil && strings.Contains(err.Error(), "i/o timeout") {
+			log.Warnf("graphql: retrying.. %d", i)
 			time.Sleep(1 * time.Second)
 			continue
 		}
