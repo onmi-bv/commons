@@ -116,7 +116,9 @@ func Init(ctx context.Context, conf Configuration) (Client, error) {
 
 // Healthcheck checks if the dgraph server is online using the health endpoint.
 func (c *Client) Healthcheck() error {
-	resp, err := http.Get(c.HealthURL)
+	req, _ := http.NewRequest("OPTIONS", c.HealthURL, nil)
+
+	resp, err := http.DefaultClient.Do(req)
 
 	if err != nil {
 		return err
@@ -130,3 +132,21 @@ func (c *Client) Healthcheck() error {
 
 	return nil
 }
+
+// // RetryDo makes request with retries
+// func (c *Client) RetryDo(ctx context.Context, req *api.Request, retry int) (*api.Response, error) {
+// 	var err error
+// 	var res *api.Response
+// 	for i := 0; i < retry; i++ {
+// 		res, err = c.NewTxn().Do(ctx, req)
+
+// 		if err != nil && strings.Contains(err.Error(), "i/o timeout") {
+// 			continue
+// 		}
+// 		if err != nil {
+// 			return res, err
+// 		}
+// 		break
+// 	}
+// 	return res, err
+// }

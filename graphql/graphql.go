@@ -258,7 +258,9 @@ func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, key string,
 
 // Healthcheck checks if the graphql server is online using the health endpoint.
 func (cli *Client) Healthcheck() error {
-	resp, err := http.Get(cli.HealthURL)
+	req, _ := http.NewRequest("OPTIONS", c.HealthURL, nil)
+
+	resp, err := http.DefaultClient.Do(req)
 
 	if err != nil {
 		return err
