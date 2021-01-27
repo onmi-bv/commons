@@ -101,13 +101,10 @@ func (cli *Client) UpsertNode(ctx context.Context, node Node) (uid string, err e
 		if err != nil {
 			return node.GetID(), fmt.Errorf("could not add node: %v", err)
 		}
-		if res.NumUids != 1 {
-			log.Warningf("Could not add new node: %v %v", node.DType(), node.GetID())
-		}
 	}
 
-	if res != nil && res.NumUids > 1 {
-		log.Warningf("Inconsistent db state, multiple entries for node after add mu: %v %v, numUids=%v", node.DType(), node.GetID(), res.NumUids)
+	if res != nil && res.NumUids == 0 {
+		log.Warningf("record was not upserted: %v %v, numUids=%v", node.DType(), node.GetID(), res.NumUids)
 	}
 
 	return node.GetID(), err
