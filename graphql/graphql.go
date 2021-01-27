@@ -217,10 +217,6 @@ func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, ids []strin
 
 	log.Debugf("deleting.. %v nodes: %v", _type, id)
 
-	if _type == "" {
-		return nil, fmt.Errorf("DeleteNode requires _type")
-	}
-
 	// delete node
 	query := `
 	mutation delete` + _type + `Mutation ($id: [String]) {
