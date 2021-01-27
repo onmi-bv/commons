@@ -215,7 +215,7 @@ func (cli *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, e
 // Action is unreversable and should be used with care.
 func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string) (*MutationResult, error) {
 
-	log.Debugf("deleting.. %v nodes: %v", _type, id)
+	log.Debugf("deleting.. %v nodes: %v", _type, ids)
 
 	// delete node
 	query := `
@@ -231,7 +231,7 @@ func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, ids []strin
 	req := graphqlapi.NewRequest(query)
 
 	// set any variables
-	req.Var("id", id)
+	req.Var("id", ids)
 
 	// run it and capture the response
 	var respData map[string]struct {
