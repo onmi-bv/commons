@@ -213,18 +213,18 @@ func (cli *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, e
 
 // DeleteNodeByID uses the Delete<type> API to delete a node.
 // Action is unreversable and should be used with care.
-func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, key string, id string) (*MutationResult, error) {
+func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string) (*MutationResult, error) {
 
 	log.Debugf("deleting.. %v nodes: %v", _type, id)
 
-	if _type == "" || id == "" || key == "" {
-		return nil, fmt.Errorf("DeleteNode requires _type, key and id")
+	if _type == "" {
+		return nil, fmt.Errorf("DeleteNode requires _type")
 	}
 
 	// delete node
 	query := `
-	mutation delete` + _type + `Mutation ($id: String!) {
-		delete` + _type + `(filter: { ` + key + `: { eq: $id }}){
+	mutation delete` + _type + `Mutation ($id: [String]) {
+		delete` + _type + `(filter: { id: { in: $id }}){
 			numUids
 		}
 	}`
