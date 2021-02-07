@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -24,10 +25,11 @@ type Node interface {
 
 // Client defines graphql host parameters.
 type Client struct {
-	Host        string `mapstructure:"HOST"`
-	HealthURL   string `mapstructure:"HEALTH_URL"`
-	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
-	AuthSecret  string `mapstructure:"SECRET"`
+	Host        string   `mapstructure:"HOST"`
+	HealthURL   string   `mapstructure:"HEALTH_URL"`
+	AuthEnabled bool     `mapstructure:"AUTH_ENABLED"`
+	AuthSecret  string   `mapstructure:"SECRET"`
+	Proxy       *url.URL `mapstructure:"AUTH_PROXY"`
 	*graphqlapi.Client
 }
 
@@ -52,7 +54,12 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 	log.Debugf("GraphQL health URL: %v", c.HealthURL)
 	log.Debugln("...")
 
-	c.Client = graphqlapi.NewClient(c.Host)
+	// setup client with auth proxy
+	c.Client = graphqlapi.NewClient(c.Host, graphqlapi.WithHTTPClient(&http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(c.Proxy),
+		},
+	}))
 
 	return c, nil
 }
@@ -67,10 +74,10 @@ type MutationResult struct {
 }
 
 // RetryRun makes request with retries
-func (cli *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp interface{}, retry int) error {
+func (c *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp interface{}, retry int) error {
 	var err error
 	for i := 0; i < retry; i++ {
-		err = cli.Run(ctx, req, resp)
+		err = c.Run(ctx, req, resp)
 
 		if err != nil && strings.Contains(err.Error(), "i/o timeout") {
 			log.Warnf("graphql: retrying.. %d", i)
@@ -86,18 +93,18 @@ func (cli *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp i
 }
 
 // UpsertNode adds or updates a node.
-func (cli *Client) UpsertNode(ctx context.Context, node Node) (uid string, err error) {
+func (c *Client) UpsertNode(ctx context.Context, node Node) (uid string, err error) {
 	log.Tracef("saving.. node: %v %v", node.DType(), node.GetID())
 
 	// update record
-	res, err := cli.UpdateNode(ctx, node)
+	res, err := c.UpdateNode(ctx, node)
 	if err != nil {
 		log.Warningf("could not update node: %v", err)
 	}
 
 	// if no record was updated, add it
 	if res == nil || res.NumUids == 0 {
-		res, err = cli.AddNode(ctx, []Node{node})
+		res, err = c.AddNode(ctx, []Node{node})
 		if err != nil {
 			return node.GetID(), fmt.Errorf("could not add node: %v", err)
 		}
@@ -111,7 +118,7 @@ func (cli *Client) UpsertNode(ctx context.Context, node Node) (uid string, err e
 }
 
 // UpdateNode uses the update<type> GraphQL API to update a node.
-func (cli *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, error) {
+func (c *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, error) {
 	log.Debugf("updating node: %v %v", node.DType(), node.GetID())
 
 	if node.GetID() == "" {
@@ -147,7 +154,7 @@ func (cli *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, 
 		NumUids int
 	}
 
-	if err := cli.RetryRun(ctx, req, &respData, 3); err != nil {
+	if err := c.RetryRun(ctx, req, &respData, 3); err != nil {
 		return nil, err
 	}
 
@@ -162,7 +169,7 @@ func (cli *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, 
 // AddNode uses the Add<type> API to add new nodes.
 // If more than 1 node is added, make sure they are of same types and their IDs doesn't exist,
 // otherwise, use Upsert tp add them individually.
-func (cli *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, error) {
+func (c *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, error) {
 
 	if len(node) == 0 {
 		return nil, fmt.Errorf("addNodes requires nodes to add, but received none")
@@ -200,7 +207,7 @@ func (cli *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, e
 		NumUids int
 	}
 
-	if err := cli.RetryRun(ctx, req, &respData, 3); err != nil {
+	if err := c.RetryRun(ctx, req, &respData, 3); err != nil {
 		return nil, err
 	}
 
@@ -213,7 +220,7 @@ func (cli *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, e
 
 // DeleteNodeByID uses the Delete<type> API to delete a node.
 // Action is unreversable and should be used with care.
-func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string) (*MutationResult, error) {
+func (c *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string) (*MutationResult, error) {
 
 	log.Debugf("deleting.. %v nodes: %v", _type, ids)
 
@@ -238,7 +245,7 @@ func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, ids []strin
 		NumUids int
 	}
 
-	if err := cli.RetryRun(ctx, req, &respData, 3); err != nil {
+	if err := c.RetryRun(ctx, req, &respData, 3); err != nil {
 		return nil, err
 	}
 
@@ -250,8 +257,8 @@ func (cli *Client) DeleteNodeByID(ctx context.Context, _type string, ids []strin
 }
 
 // Healthcheck checks if the graphql server is online using the health endpoint.
-func (cli *Client) Healthcheck() error {
-	req, _ := http.NewRequest("OPTIONS", cli.HealthURL, nil)
+func (c *Client) Healthcheck() error {
+	req, _ := http.NewRequest("OPTIONS", c.HealthURL, nil)
 
 	resp, err := http.DefaultClient.Do(req)
 
