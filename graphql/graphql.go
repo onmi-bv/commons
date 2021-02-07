@@ -33,6 +33,21 @@ type Client struct {
 	*graphqlapi.Client
 }
 
+// Configuration used for initialization
+type Configuration struct {
+	Path   string // Path to config file.
+	Prefix string // Prefix to environment variables.
+}
+
+// Init client
+func Init(ctx context.Context, conf Configuration) (Client, error) {
+	c, err := LoadConfig(ctx, conf.Path, conf.Prefix)
+	if err != nil {
+		return c, fmt.Errorf("Load: %v", err)
+	}
+	return c, err
+}
+
 // LoadConfig loads the graphql host parameters from environment
 func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error) {
 	c := Client{}
