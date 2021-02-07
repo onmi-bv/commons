@@ -90,6 +90,10 @@ type MutationResult struct {
 	}
 }
 
+// RequestOption are functions that are passed to
+// modify the graphql requests. Use function to modify headers, Vars.
+type RequestOption func(*graphqlapi.Request)
+
 // RetryRun makes request with retries
 func (c *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp interface{}, retry int) error {
 	var err error
@@ -110,18 +114,18 @@ func (c *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp int
 }
 
 // UpsertNode adds or updates a node.
-func (c *Client) UpsertNode(ctx context.Context, node Node) (uid string, err error) {
+func (c *Client) UpsertNode(ctx context.Context, node Node, opts ...RequestOption) (uid string, err error) {
 	log.Tracef("saving.. node: %v %v", node.DType(), node.GetID())
 
 	// update record
-	res, err := c.UpdateNode(ctx, node)
+	res, err := c.UpdateNode(ctx, node, opts...)
 	if err != nil {
 		log.Warningf("could not update node: %v", err)
 	}
 
 	// if no record was updated, add it
 	if res == nil || res.NumUids == 0 {
-		res, err = c.AddNode(ctx, []Node{node})
+		res, err = c.AddNode(ctx, []Node{node}, opts...)
 		if err != nil {
 			return node.GetID(), fmt.Errorf("could not add node: %v", err)
 		}
@@ -135,7 +139,7 @@ func (c *Client) UpsertNode(ctx context.Context, node Node) (uid string, err err
 }
 
 // UpdateNode uses the update<type> GraphQL API to update a node.
-func (c *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, error) {
+func (c *Client) UpdateNode(ctx context.Context, node Node, opts ...RequestOption) (*MutationResult, error) {
 	log.Debugf("updating node: %v %v", node.DType(), node.GetID())
 
 	if node.GetID() == "" {
@@ -166,6 +170,11 @@ func (c *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 	// set any variables
 	req.Var("set", node.Patch())
 
+	// run request functions
+	for _, optionFunc := range opts {
+		optionFunc(req)
+	}
+
 	// run it and capture the response
 	var respData map[string]struct {
 		NumUids int
@@ -186,7 +195,7 @@ func (c *Client) UpdateNode(ctx context.Context, node Node) (*MutationResult, er
 // AddNode uses the Add<type> API to add new nodes.
 // If more than 1 node is added, make sure they are of same types and their IDs doesn't exist,
 // otherwise, use Upsert tp add them individually.
-func (c *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, error) {
+func (c *Client) AddNode(ctx context.Context, node []Node, opts ...RequestOption) (*MutationResult, error) {
 
 	if len(node) == 0 {
 		return nil, fmt.Errorf("addNodes requires nodes to add, but received none")
@@ -219,6 +228,11 @@ func (c *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, err
 	// set any variables
 	req.Var("set", node)
 
+	// run request functions
+	for _, optionFunc := range opts {
+		optionFunc(req)
+	}
+
 	// run it and capture the response
 	var respData map[string]struct {
 		NumUids int
@@ -237,7 +251,7 @@ func (c *Client) AddNode(ctx context.Context, node []Node) (*MutationResult, err
 
 // DeleteNodeByID uses the Delete<type> API to delete a node.
 // Action is unreversable and should be used with care.
-func (c *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string) (*MutationResult, error) {
+func (c *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string, opts ...RequestOption) (*MutationResult, error) {
 
 	log.Debugf("deleting.. %v nodes: %v", _type, ids)
 
@@ -256,6 +270,11 @@ func (c *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string)
 
 	// set any variables
 	req.Var("id", ids)
+
+	// run request functions
+	for _, optionFunc := range opts {
+		optionFunc(req)
+	}
 
 	// run it and capture the response
 	var respData map[string]struct {
