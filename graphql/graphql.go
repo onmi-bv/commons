@@ -25,11 +25,11 @@ type Node interface {
 
 // Client defines graphql host parameters.
 type Client struct {
-	Host        string   `mapstructure:"HOST"`
-	HealthURL   string   `mapstructure:"HEALTH_URL"`
-	AuthEnabled bool     `mapstructure:"AUTH_ENABLED"`
-	AuthSecret  string   `mapstructure:"SECRET"`
-	Proxy       *url.URL `mapstructure:"AUTH_PROXY"`
+	Host        string `mapstructure:"HOST"`
+	HealthURL   string `mapstructure:"HEALTH_URL"`
+	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
+	AuthSecret  string `mapstructure:"SECRET"`
+	Proxy       string `mapstructure:"AUTH_PROXY"`
 	*graphqlapi.Client
 }
 
@@ -70,9 +70,11 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 	log.Debugln("...")
 
 	// setup client with auth proxy
+	proxy, _ := url.Parse(c.Proxy)
+
 	c.Client = graphqlapi.NewClient(c.Host, graphqlapi.WithHTTPClient(&http.Client{
 		Transport: &http.Transport{
-			Proxy: http.ProxyURL(c.Proxy),
+			Proxy: http.ProxyURL(proxy),
 		},
 	}))
 
