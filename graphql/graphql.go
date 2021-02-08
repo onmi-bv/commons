@@ -46,7 +46,7 @@ func Init(ctx context.Context, conf Configuration) (Client, error) {
 	if err != nil {
 		return c, fmt.Errorf("Load: %v", err)
 	}
-
+	c.RequestOption = conf.RequestOption
 	return c, err
 }
 
