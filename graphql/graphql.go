@@ -35,8 +35,9 @@ type Client struct {
 
 // Configuration used for initialization
 type Configuration struct {
-	Path   string // Path to config file.
-	Prefix string // Prefix to environment variables.
+	Path          string // Path to config file.
+	Prefix        string // Prefix to environment variables.
+	RequestOption RequestOption
 }
 
 // Init client
@@ -45,6 +46,7 @@ func Init(ctx context.Context, conf Configuration) (Client, error) {
 	if err != nil {
 		return c, fmt.Errorf("Load: %v", err)
 	}
+
 	return c, err
 }
 

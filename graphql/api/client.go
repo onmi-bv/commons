@@ -52,6 +52,8 @@ type Client struct {
 	// To log to standard out, use:
 	//  client.Log = func(s string) { log.Println(s) }
 	Log func(s string)
+
+	RequestOption func(*Request)
 }
 
 // NewClient makes a new Client capable of making GraphQL requests.
@@ -79,6 +81,11 @@ func (c *Client) logf(format string, args ...interface{}) {
 // If the request fails or the server returns an error, the first error
 // will be returned.
 func (c *Client) Run(ctx context.Context, req *Request, resp interface{}) error {
+
+	if c.RequestOption != nil {
+		c.RequestOption(req)
+	}
+
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
