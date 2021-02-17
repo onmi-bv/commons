@@ -54,6 +54,8 @@ func HTTP(ctx context.Context, port int) (c Client, err error) {
 // PubSub creates and initilizes cloudevent with pubsub protocol.
 func PubSub(ctx context.Context, opts ...cepubsub.Option) (c Client, err error) {
 
+	opts = append(opts, cepubsub.WithTopicIDFromDefaultEnv())
+
 	protocol, err := cepubsub.New(ctx, opts...)
 	if err != nil {
 		return c, fmt.Errorf("failed to create cloudevent pubsub protocol, %v", err)
