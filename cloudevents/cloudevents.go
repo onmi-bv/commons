@@ -54,7 +54,10 @@ func HTTP(ctx context.Context, port int) (c Client, err error) {
 // PubSub creates and initilizes cloudevent with pubsub protocol.
 func PubSub(ctx context.Context, opts ...cepubsub.Option) (c Client, err error) {
 
-	opts = append(opts, cepubsub.WithTopicIDFromDefaultEnv())
+	if len(opts) == 0 {
+		opts = append(opts, cepubsub.WithTopicIDFromDefaultEnv())
+		opts = append(opts, cepubsub.WithProjectIDFromDefaultEnv())
+	}
 
 	protocol, err := cepubsub.New(ctx, opts...)
 	if err != nil {
