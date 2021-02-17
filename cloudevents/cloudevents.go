@@ -43,11 +43,12 @@ func HTTP(ctx context.Context, port int) (c Client, err error) {
 	if err != nil {
 		return c, fmt.Errorf("failed to create cloudevent http protocol, %v", err)
 	}
-	ce, err := cloudevents.NewClientObserved(protocol,
-		cloudevents.WithTimeNow(), cloudevents.WithUUIDs())
+
+	ce, err := cloudevents.NewClientObserved(protocol, cloudevents.WithTimeNow(), cloudevents.WithUUIDs())
 	if err != nil {
 		return c, fmt.Errorf("failed to create cloudevent client, %v", err)
 	}
+
 	return Client{ce}, nil
 }
 
@@ -63,10 +64,11 @@ func PubSub(ctx context.Context, opts ...cepubsub.Option) (c Client, err error) 
 	if err != nil {
 		return c, fmt.Errorf("failed to create cloudevent pubsub protocol, %v", err)
 	}
-	ce, err := cloudevents.NewClientObserved(protocol,
-		cloudevents.WithTimeNow(), cloudevents.WithUUIDs())
+
+	ce, err := cloudevents.NewClientObserved(protocol, cloudevents.WithTimeNow(), cloudevents.WithUUIDs())
 	if err != nil {
 		return c, fmt.Errorf("failed to create cloudevent client, %v", err)
 	}
+
 	return Client{ce}, nil
 }
