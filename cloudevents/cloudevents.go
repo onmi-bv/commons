@@ -28,31 +28,31 @@ func CloudEvents(ctx context.Context, port int) (ce cloudevents.Client, err erro
 }
 
 // HTTP creates and initilizes cloudevent with HTTP protocol.
-func HTTP(ctx context.Context, port int) (*Client, error) {
+func HTTP(ctx context.Context, port int) (c Client, err error) {
 
 	protocol, err := cehttp.New(cloudevents.WithPort(port))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create cloudevent http protocol, %v", err)
+		return c, fmt.Errorf("failed to create cloudevent http protocol, %v", err)
 	}
 	ce, err := cloudevents.NewClientObserved(protocol,
 		cloudevents.WithTimeNow(), cloudevents.WithUUIDs())
 	if err != nil {
-		return nil, fmt.Errorf("failed to create cloudevent client, %v", err)
+		return c, fmt.Errorf("failed to create cloudevent client, %v", err)
 	}
-	return &Client{ce}, nil
+	return Client{ce}, nil
 }
 
 // PubSub creates and initilizes cloudevent with pubsub protocol.
-func PubSub(ctx context.Context, opts ...cepubsub.Option) (*Client, error) {
+func PubSub(ctx context.Context, opts ...cepubsub.Option) (c Client, err error) {
 
 	protocol, err := cepubsub.New(ctx, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create cloudevent pubsub protocol, %v", err)
+		return c, fmt.Errorf("failed to create cloudevent pubsub protocol, %v", err)
 	}
 	ce, err := cloudevents.NewClientObserved(protocol,
 		cloudevents.WithTimeNow(), cloudevents.WithUUIDs())
 	if err != nil {
-		return nil, fmt.Errorf("failed to create cloudevent client, %v", err)
+		return c, fmt.Errorf("failed to create cloudevent client, %v", err)
 	}
-	return &Client{ce}, nil
+	return Client{ce}, nil
 }
