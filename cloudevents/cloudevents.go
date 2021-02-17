@@ -12,6 +12,15 @@ import (
 // Client defines the cloudevent client
 type Client struct{ cloudevents.Client }
 
+// Protocol for cloud event
+type Protocol string
+
+// CEProtocols to implement
+const (
+	HTTPProtocol   Protocol = "http"
+	PubSubProtocol Protocol = "pubsub"
+)
+
 // CloudEvents creates and initilizes cloudevent with http protocol.
 func CloudEvents(ctx context.Context, port int) (ce cloudevents.Client, err error) {
 
