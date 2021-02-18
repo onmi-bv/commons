@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	"cloud.google.com/go/pubsub"
 	cepubsub "github.com/cloudevents/sdk-go/protocol/pubsub/v2"
@@ -96,8 +98,14 @@ func EventarcToEvent(ctx context.Context, e *event.Event) (*event.Event, error) 
 	return binding.ToEvent(ctx, m)
 }
 
-// PubSubToEvent converts bytes in pubsub format to ce-event.
-func PubSubToEvent(ctx context.Context, b []byte) (*event.Event, error) {
+// NewEventFromPubSubRequest converts request body in pubsub format to ce-event.
+func NewEventFromPubSubRequest(ctx context.Context, r *http.Request) (*event.Event, error) {
+
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Error while ready request body")
+	}
+	defer r.Body.Close()
 
 	// PubSubMessage is the payload of a Pub/Sub event.
 	pm := struct {
