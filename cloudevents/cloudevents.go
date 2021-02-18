@@ -4,9 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"cloud.google.com/go/pubsub"
 	cepubsub "github.com/cloudevents/sdk-go/protocol/pubsub/v2"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/cloudevents/sdk-go/v2/binding"
+	"github.com/cloudevents/sdk-go/v2/event"
 	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
+	"github.com/pkg/errors"
 )
 
 // Client defines the cloudevent client
@@ -71,4 +75,22 @@ func PubSub(ctx context.Context, opts ...cepubsub.Option) (c Client, err error) 
 	}
 
 	return Client{ce}, nil
+}
+
+// EventarcToEvent converts event in Eventarc format to ce-event.
+func EventarcToEvent(ctx context.Context, e *event.Event) (*event.Event, error) {
+
+	// PubSubMessage is the payload of a Pub/Sub event.
+	pm := struct {
+		Message      pubsub.Message
+		Subscription string `json:"subscription"`
+	}{}
+
+	if err := e.DataAs(&pm); err != nil {
+		return nil, errors.Wrapf(err, "Error while extracting pubsub message")
+	}
+
+	m := cepubsub.NewMessage(&pm.Message)
+
+	return binding.ToEvent(ctx, m)
 }
