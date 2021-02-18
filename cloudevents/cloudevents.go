@@ -98,8 +98,8 @@ func EventarcToEvent(ctx context.Context, e *event.Event) (*event.Event, error) 
 	return binding.ToEvent(ctx, m)
 }
 
-// NewEventFromPubSubRequest converts request body in pubsub format to ce-event.
-func NewEventFromPubSubRequest(ctx context.Context, r *http.Request) (*event.Event, error) {
+// NewMessageFromPubSubRequest converts pubsub request to a ce binding message.
+func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (*cepubsub.Message, error) {
 
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -117,7 +117,22 @@ func NewEventFromPubSubRequest(ctx context.Context, r *http.Request) (*event.Eve
 		return nil, errors.Wrapf(err, "Error while extracting pubsub message")
 	}
 
-	m := cepubsub.NewMessage(&pm.Message)
+	return cepubsub.NewMessage(&pm.Message), nil
+}
+
+// NewMessageFromHTTPRequest converts request body in pubsub format to ce-event.
+func NewMessageFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (e *event.Event, err error) {
+
+	var m binding.MessageReader
+
+	switch p {
+	case HTTPProtocol:
+		m = cehttp.NewMessageFromHttpRequest(r)
+	case PubSubProtocol:
+		if m, err = NewMessageFromPubSubRequest(ctx, r); err != nil {
+			return
+		}
+	}
 
 	return binding.ToEvent(ctx, m)
 }
