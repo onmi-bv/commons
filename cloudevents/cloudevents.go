@@ -120,8 +120,8 @@ func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (*cepubsu
 	return cepubsub.NewMessage(&pm.Message), nil
 }
 
-// NewMessageFromHTTPRequest converts request body in pubsub format to ce-event.
-func NewMessageFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (e *event.Event, err error) {
+// NewEventFromHTTPRequest converts http request body to ce-event.
+func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (e *event.Event, err error) {
 
 	var m binding.MessageReader
 
