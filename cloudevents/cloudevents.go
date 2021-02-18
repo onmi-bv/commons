@@ -2,6 +2,7 @@ package cloudevents
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"cloud.google.com/go/pubsub"
@@ -87,6 +88,24 @@ func EventarcToEvent(ctx context.Context, e *event.Event) (*event.Event, error) 
 	}{}
 
 	if err := e.DataAs(&pm); err != nil {
+		return nil, errors.Wrapf(err, "Error while extracting pubsub message")
+	}
+
+	m := cepubsub.NewMessage(&pm.Message)
+
+	return binding.ToEvent(ctx, m)
+}
+
+// PubSubToEvent converts bytes in pubsub format to ce-event.
+func PubSubToEvent(ctx context.Context, b []byte) (*event.Event, error) {
+
+	// PubSubMessage is the payload of a Pub/Sub event.
+	pm := struct {
+		Message      pubsub.Message
+		Subscription string `json:"subscription"`
+	}{}
+
+	if err := json.Unmarshal(b, &pm); err != nil {
 		return nil, errors.Wrapf(err, "Error while extracting pubsub message")
 	}
 
