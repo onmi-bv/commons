@@ -14,10 +14,14 @@ import (
 	"github.com/cloudevents/sdk-go/v2/event"
 	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 // Client defines the cloudevent client
-type Client struct{ cloudevents.Client }
+type Client struct {
+	Protocol Protocol
+	cloudevents.Client
+}
 
 // Protocol for cloud event
 type Protocol string
@@ -27,6 +31,54 @@ const (
 	HTTPProtocol   Protocol = "http"
 	PubSubProtocol Protocol = "pubsub"
 )
+
+// StartReceiver starts an http receiver able to parse different protocols
+func (c *Client) StartReceiver(ctx context.Context, fn interface{}, port int) {
+
+	// Create a mux for routing incoming requests
+	mux := http.NewServeMux()
+
+	// All URLs will be handled by this function
+	mux.Handle("/", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+
+			if r.Method != "POST" { /* The regular updates are sent using a POST request, deny everything else */
+				w.WriteHeader(http.StatusMethodNotAllowed)
+				return
+			}
+
+			event, err := NewEventFromHTTPRequest(ctx, r, c.Protocol)
+			if err != nil {
+				log.Errorf("cannot convert request to a valid cloudevent: %v", err)
+				http.Error(w, fmt.Sprintf("cannot convert request to a valid cloudevent: %v", err), http.StatusBadRequest)
+				return
+			}
+
+			switch fn.(type) {
+			case func(ctx context.Context, event cloudevents.Event) (*cloudevents.Event, cloudevents.Result):
+				fn.(func(ctx context.Context, event cloudevents.Event) (*cloudevents.Event, cloudevents.Result))(ctx, *event)
+			default:
+				log.Error("unsupported receiver fn type")
+			}
+		},
+	))
+
+	// Create a server listening on port 8000
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: mux,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen:%+s\n", err)
+		}
+	}()
+
+	<-ctx.Done()
+
+	return
+}
 
 // CloudEvents creates and initilizes cloudevent with http protocol.
 func CloudEvents(ctx context.Context, port int) (ce cloudevents.Client, err error) {
@@ -56,7 +108,7 @@ func HTTP(ctx context.Context, port int) (c Client, err error) {
 		return c, fmt.Errorf("failed to create cloudevent client, %v", err)
 	}
 
-	return Client{ce}, nil
+	return Client{HTTPProtocol, ce}, nil
 }
 
 // PubSub creates and initilizes cloudevent with pubsub protocol.
@@ -77,7 +129,7 @@ func PubSub(ctx context.Context, opts ...cepubsub.Option) (c Client, err error) 
 		return c, fmt.Errorf("failed to create cloudevent client, %v", err)
 	}
 
-	return Client{ce}, nil
+	return Client{PubSubProtocol, ce}, nil
 }
 
 // EventarcToEvent converts event in Eventarc format to ce-event.
