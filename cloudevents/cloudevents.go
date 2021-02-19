@@ -21,6 +21,7 @@ import (
 type Client struct {
 	Protocol Protocol
 	cloudevents.Client
+	receiverPort int
 }
 
 // Protocol for cloud event
@@ -33,7 +34,7 @@ const (
 )
 
 // StartReceiver starts an http receiver able to parse different protocols
-func (c *Client) StartReceiver(ctx context.Context, fn interface{}, port int) {
+func (c *Client) StartReceiver(ctx context.Context, fn interface{}) {
 
 	// Create a mux for routing incoming requests
 	mux := http.NewServeMux()
@@ -65,7 +66,7 @@ func (c *Client) StartReceiver(ctx context.Context, fn interface{}, port int) {
 
 	// Create a server listening on port 8000
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf(":%d", c.receiverPort),
 		Handler: mux,
 	}
 
@@ -76,8 +77,15 @@ func (c *Client) StartReceiver(ctx context.Context, fn interface{}, port int) {
 	}()
 
 	<-ctx.Done()
+	srv.Shutdown(context.Background())
 
 	return
+}
+
+// WithPort sets the receiver port for StartReceiver func.
+func (c *Client) WithPort(port int) *Client {
+	c.receiverPort = port
+	return c
 }
 
 // CloudEvents creates and initilizes cloudevent with http protocol.
@@ -108,7 +116,7 @@ func HTTP(ctx context.Context, port int) (c Client, err error) {
 		return c, fmt.Errorf("failed to create cloudevent client, %v", err)
 	}
 
-	return Client{HTTPProtocol, ce}, nil
+	return Client{HTTPProtocol, ce, port}, nil
 }
 
 // PubSub creates and initilizes cloudevent with pubsub protocol.
@@ -129,7 +137,7 @@ func PubSub(ctx context.Context, opts ...cepubsub.Option) (c Client, err error) 
 		return c, fmt.Errorf("failed to create cloudevent client, %v", err)
 	}
 
-	return Client{PubSubProtocol, ce}, nil
+	return Client{PubSubProtocol, ce, 0}, nil
 }
 
 // EventarcToEvent converts event in Eventarc format to ce-event.
