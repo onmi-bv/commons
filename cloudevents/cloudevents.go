@@ -34,7 +34,7 @@ const (
 )
 
 // StartReceiver starts an http receiver able to parse different protocols
-func (c *Client) StartReceiver(ctx context.Context, fn interface{}) {
+func (c *Client) StartReceiver(ctx context.Context, fn interface{}) error {
 
 	// Create a mux for routing incoming requests
 	mux := http.NewServeMux()
@@ -76,10 +76,10 @@ func (c *Client) StartReceiver(ctx context.Context, fn interface{}) {
 		}
 	}()
 
-	<-ctx.Done()
-	srv.Shutdown(context.Background())
-
-	return
+	select {
+	case <-ctx.Done():
+		return srv.Shutdown(context.Background())
+	}
 }
 
 // WithPort sets the receiver port for StartReceiver func.
