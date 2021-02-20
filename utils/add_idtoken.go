@@ -13,7 +13,7 @@ import (
 func AddServiceAccountToken(ctx context.Context, req *http.Request, audienceURL string) (*http.Request, error) {
 	idToken, err := GetServiceAccountToken(ctx, audienceURL)
 	if err != nil {
-		return req, fmt.Errorf("metadata.Get: failed to query id_token: %+v", err)
+		return req, err
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", idToken))
 	return req, nil
