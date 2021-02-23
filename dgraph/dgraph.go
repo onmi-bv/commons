@@ -97,8 +97,9 @@ func (c *Client) Initialize(ctx context.Context) (err error) {
 
 // Configuration used for initialization
 type Configuration struct {
-	Path   string // Path to config file.
-	Prefix string // Prefix to environment variables.
+	Path      string // Path to config file.
+	Prefix    string // Prefix to environment variables.
+	RetryDial int    // Retry grpc dial in case server requires a cold start
 }
 
 // Init client
@@ -109,7 +110,16 @@ func Init(ctx context.Context, conf Configuration) (Client, error) {
 		return client, fmt.Errorf("Load: %v", err)
 	}
 
-	err = client.Initialize(ctx)
+	if conf.RetryDial == 0 {
+		conf.RetryDial = 3
+	}
+
+	for ; conf.RetryDial > 0; conf.RetryDial-- {
+
+		if err = client.Initialize(ctx); err == nil {
+			break
+		}
+	}
 
 	return client, err
 }
