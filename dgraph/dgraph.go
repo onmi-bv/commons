@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -119,6 +120,7 @@ func Init(ctx context.Context, conf Configuration) (Client, error) {
 		if err = client.Initialize(ctx); err == nil {
 			break
 		}
+		time.Sleep(time.Second)
 	}
 
 	return client, err
