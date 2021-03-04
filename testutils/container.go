@@ -12,8 +12,14 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
+// PortMap maps the host port to the container port
+type PortMap struct {
+	Host      string
+	Container string
+}
+
 // CreateNewContainer creates a new container, and binding to the hostPort.
-func CreateNewContainer(image string, hostPort string, containerPort string, env []string) (*client.Client, string, error) {
+func CreateNewContainer(image string, portMap []PortMap, env []string) (*client.Client, string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		fmt.Println("Unable to create docker client")
@@ -28,20 +34,24 @@ func CreateNewContainer(image string, hostPort string, containerPort string, env
 	// 	panic(err)
 	// }
 
-	// create host port binding
-	hostBinding := nat.PortBinding{
-		HostIP:   "0.0.0.0",
-		HostPort: hostPort,
-	}
+	var portBinding = nat.PortMap{}
 
-	// create container nat port
-	containerPortNat, err := nat.NewPort("tcp", containerPort)
-	if err != nil {
-		panic("Unable to get the port")
-	}
+	for _, m := range portMap {
+		// create host port binding
+		hostBinding := nat.PortBinding{
+			HostIP:   "0.0.0.0",
+			HostPort: m.Host,
+		}
 
-	// Bind container to host port binding
-	portBinding := nat.PortMap{containerPortNat: []nat.PortBinding{hostBinding}}
+		// create container nat port
+		containerPortNat, err := nat.NewPort("tcp", m.Container)
+		if err != nil {
+			panic("Unable to get the port")
+		}
+
+		// Bind container to host port binding
+		portBinding[containerPortNat] = []nat.PortBinding{hostBinding}
+	}
 
 	cont, err := cli.ContainerCreate(
 		context.Background(),
