@@ -18,7 +18,7 @@ type ContainerConfig struct {
 	Image     string      // Container image
 	PortMap   []PortMap   // Maps the host port to the container port
 	VolumeMap []VolumeMap // Maps the volume source path to the target path
-	env       []string    // Set environment vars
+	Env       []string    // Set environment vars
 }
 
 // PortMap ...
