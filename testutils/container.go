@@ -82,7 +82,7 @@ func CreateNewContainer(ctx context.Context, config ContainerConfig) (*client.Cl
 		context.Background(),
 		&container.Config{
 			Image: config.Image,
-			Env:   config.env,
+			Env:   config.Env,
 		},
 		&container.HostConfig{
 			PortBindings: portBinding,
