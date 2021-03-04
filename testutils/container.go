@@ -15,16 +15,22 @@ import (
 
 // ContainerConfig defines the config for creating new container
 type ContainerConfig struct {
-	Image   string // Container image
-	PortMap []struct {
-		Host      string
-		Container string
-	} // Maps the host port to the container port
-	VolumeMap []struct {
-		Source string
-		Target string
-	} // Maps the volume source path to the target path
-	env []string // Set environment vars
+	Image     string      // Container image
+	PortMap   []PortMap   // Maps the host port to the container port
+	VolumeMap []VolumeMap // Maps the volume source path to the target path
+	env       []string    // Set environment vars
+}
+
+// PortMap ...
+type PortMap struct {
+	Host      string
+	Container string
+}
+
+// VolumeMap ...
+type VolumeMap struct {
+	Source string
+	Target string
 }
 
 // CreateNewContainer creates a new container, and binding to the hostPort.
