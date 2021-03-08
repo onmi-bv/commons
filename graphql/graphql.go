@@ -72,13 +72,13 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 	log.Debugln("...")
 
 	// setup client with auth proxy
-	proxy, _ := url.Parse(c.Proxy)
-
-	c.Client = graphqlapi.NewClient(c.Host, graphqlapi.WithHTTPClient(&http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxy),
-		},
-	}))
+	if proxy, err := url.Parse(c.Proxy); err == nil {
+		c.Client = graphqlapi.NewClient(c.Host, graphqlapi.WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxy),
+			},
+		}))
+	}
 
 	return c, nil
 }
