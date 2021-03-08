@@ -68,7 +68,7 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 		log.Debugf("GraphQL secret: %v", "<empty>")
 	}
 
-	log.Debugf("GraphQL health URL: %v", c.HealthURL)
+	log.Debugf("GraphQLxx health URL: %v", c.HealthURL)
 	log.Debugln("...")
 
 	// setup client with auth proxy
