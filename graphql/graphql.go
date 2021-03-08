@@ -92,9 +92,12 @@ type MutationResult struct {
 	}
 }
 
+// Request is a GraphQL request.
+type Request = graphqlapi.Request
+
 // RequestOption are functions that are passed to
 // modify the graphql requests. Use function to modify headers, Vars.
-type RequestOption func(*graphqlapi.Request)
+type RequestOption = func(*Request)
 
 // RetryRun makes request with retries
 func (c *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp interface{}, retry int) error {
