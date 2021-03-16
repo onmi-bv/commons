@@ -307,7 +307,7 @@ func (c *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string,
 // CustomNodeMutation uses the custom API
 func (c *Client) CustomNodeMutation(ctx context.Context, customFn string, inputType string, node interface{}, opts ...RequestOption) (*MutationResult, error) {
 
-	log.Debugf("custom.. %s")
+	log.Debugf("custom.. %s", customFn)
 
 	b, _ := json.MarshalIndent(node, "  ", "  ")
 	log.Tracef("graphql node: %v", string(b))
