@@ -304,6 +304,89 @@ func (c *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string,
 	return &res, nil
 }
 
+// CustomNodeMutation uses the custom API
+func (c *Client) CustomNodeMutation(ctx context.Context, customFn string, inputType string, node interface{}, opts ...RequestOption) (*MutationResult, error) {
+
+	log.Debugf("custom.. %s")
+
+	b, _ := json.MarshalIndent(node, "  ", "  ")
+	log.Tracef("graphql node: %v", string(b))
+
+	// delete node
+	query := `
+	mutation ` + customFn + `Mutation ($input: ` + inputType + `) {
+		` + customFn + `(input: $input){
+			numUids
+		}
+	}`
+
+	// make a request
+	req := graphqlapi.NewRequest(query)
+
+	req.Var("input", node)
+
+	log.Tracef("graphql query: %s %s", query, string(b))
+
+	// run request functions
+	for _, optionFunc := range opts {
+		optionFunc(req)
+	}
+
+	// run it and capture the response
+	var respData map[string]struct {
+		NumUids int
+	}
+
+	if err := c.RetryRun(ctx, req, &respData, 3); err != nil {
+		return nil, err
+	}
+
+	res := MutationResult{
+		NumUids: respData[customFn].NumUids,
+	}
+
+	return &res, nil
+}
+
+// CustomNodeMutationWithoutInput uses the custom API
+func (c *Client) CustomNodeMutationWithoutInput(ctx context.Context, customFn string, opts ...RequestOption) (*MutationResult, error) {
+
+	log.Debugf("custom.. %s", customFn)
+
+	// delete node
+	query := `
+	mutation ` + customFn + `Mutation {
+		` + customFn + `{
+			numUids
+		}
+	}`
+
+	// make a request
+	req := graphqlapi.NewRequest(query)
+
+	log.Tracef("graphql query: %s", query)
+
+	// run request functions
+	for _, optionFunc := range opts {
+		optionFunc(req)
+	}
+
+	// run it and capture the response
+	var respData map[string]struct {
+		NumUids int
+	}
+
+	if err := c.RetryRun(ctx, req, &respData, 3); err != nil {
+		return nil, err
+	}
+
+	res := MutationResult{
+		NumUids: respData[customFn].NumUids,
+	}
+
+	return &res, nil
+}
+
 // Healthcheck checks if the graphql server is online using the health endpoint.
 func (c *Client) Healthcheck() error {
 	req, _ := http.NewRequest("OPTIONS", c.HealthURL, nil)
