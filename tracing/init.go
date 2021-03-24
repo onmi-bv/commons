@@ -51,7 +51,7 @@ type Configuration struct {
 }
 
 // Tracer type
-type Tracer trace.Tracer
+type Tracer = trace.Tracer
 
 // Init initializes opentelemetry. The returned Tracer is ready to use.
 // The returned Exporter will be useful for flushing spans before exiting the process.
@@ -76,8 +76,7 @@ func Init(ctx context.Context, name string) (Tracer, error) {
 	case StackdriverExporter:
 		exporter, err = texporter.NewExporter(
 			texporter.WithContext(ctx),
-			texporter.WithProjectID(string(config.ProjectID)),
-			texporter.WithMaxNumberOfWorkers(config.MaxNumberOfWorkers),
+			texporter.WithProjectID(config.ProjectID),
 		)
 		if err != nil {
 			return tracer, errors.Wrap(err, "cannot init stackdriver exporter")
