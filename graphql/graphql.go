@@ -29,7 +29,7 @@ type Client struct {
 	HealthURL   string `mapstructure:"HEALTH_URL"`
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	AuthSecret  string `mapstructure:"SECRET"`
-	Proxy       string `mapstructure:"AUTH_PROXY"`
+	Proxy       string `mapstructure:"PROXY"`
 	*graphqlapi.Client
 }
 
@@ -71,7 +71,7 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 	log.Debugf("GraphQL health URL: %v", c.HealthURL)
 
 	// setup client with auth proxy
-	if proxy, err := url.Parse(c.Proxy); err != nil {
+	if proxy, err := url.Parse(c.Proxy); err == nil {
 
 		log.Debugf("GraphQL proxy: %s", proxy.String())
 
