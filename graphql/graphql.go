@@ -2,7 +2,6 @@ package graphql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -47,7 +46,7 @@ func Init(ctx context.Context, conf Configuration) (Client, error) {
 		return c, fmt.Errorf("Load: %v", err)
 	}
 	c.RequestOption = conf.RequestOption
-	c.Log = func(s string) { log.Debug(s) }
+	c.Log = func(s string) { log.Trace(s) }
 	return c, err
 }
 
@@ -171,10 +170,10 @@ func (c *Client) UpdateNode(ctx context.Context, node Node, opts ...RequestOptio
 		}
 	}`
 
-	log.Tracef("graphql query: %v", query)
+	// log.Tracef("graphql query: %v", query)
 
-	b, _ := json.MarshalIndent(node.Patch(), "  ", "  ")
-	log.Tracef("graphql node: %v", string(b))
+	// b, _ := json.MarshalIndent(node.Patch(), "  ", "  ")
+	// log.Tracef("graphql node: %v", string(b))
 
 	// make a request
 	req := graphqlapi.NewRequest(query)
@@ -229,10 +228,10 @@ func (c *Client) AddNode(ctx context.Context, node []Node, opts ...RequestOption
 		}
 	}`
 
-	log.Tracef("graphql query: %v", query)
+	// log.Tracef("graphql query: %v", query)
 
-	b, _ := json.MarshalIndent(node, "  ", "  ")
-	log.Tracef("graphql node: %v", string(b))
+	// b, _ := json.MarshalIndent(node, "  ", "  ")
+	// log.Tracef("graphql node: %v", string(b))
 
 	// make a request
 	req := graphqlapi.NewRequest(query)
@@ -275,7 +274,7 @@ func (c *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string,
 		}
 	}`
 
-	log.Tracef("graphql query: %v", query)
+	// log.Tracef("graphql query: %v", query)
 
 	// make a request
 	req := graphqlapi.NewRequest(query)
@@ -309,8 +308,8 @@ func (c *Client) CustomNodeMutation(ctx context.Context, customFn string, inputT
 
 	log.Debugf("custom.. %s", customFn)
 
-	b, _ := json.MarshalIndent(node, "  ", "  ")
-	log.Tracef("graphql node: %v", string(b))
+	// b, _ := json.MarshalIndent(node, "  ", "  ")
+	// log.Tracef("graphql node: %v", string(b))
 
 	// delete node
 	query := `
@@ -325,7 +324,7 @@ func (c *Client) CustomNodeMutation(ctx context.Context, customFn string, inputT
 
 	req.Var("input", node)
 
-	log.Tracef("graphql query: %s %s", query, string(b))
+	// log.Tracef("graphql query: %s %s", query, string(b))
 
 	// run request functions
 	for _, optionFunc := range opts {
@@ -364,7 +363,7 @@ func (c *Client) CustomNodeMutationWithoutInput(ctx context.Context, customFn st
 	// make a request
 	req := graphqlapi.NewRequest(query)
 
-	log.Tracef("graphql query: %s", query)
+	// log.Tracef("graphql query: %s", query)
 
 	// run request functions
 	for _, optionFunc := range opts {
