@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -76,14 +77,16 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 		log.Debugf("GraphQL proxy: %s", proxy.String())
 
 		// use custom client with proxy
-		host, _ := url.Parse(c.Host)
-		host.Host = proxy.Host
-		c.Client = graphqlapi.NewClient(host.String(), graphqlapi.WithHTTPClient(&http.Client{
-			// Transport: &http.Transport{
-			// 	Proxy:           http.ProxyURL(proxy),
-			// 	TLSClientConfig: &tls.Config{}, //set ssl
-			// },
-		}))
+		// host, _ := url.Parse(c.Host)
+		// host.Host = proxy.Host
+		os.Setenv("HTTP_PROXY", proxy.String())
+		c.Client = graphqlapi.NewClient(c.Host, graphqlapi.WithHTTPClient(http.DefaultClient))
+		// 	c.Client = graphqlapi.NewClient(host.String(), graphqlapi.WithHTTPClient(&http.Client{
+		// 	// Transport: &http.Transport{
+		// 	// 	Proxy:           http.ProxyURL(proxy),
+		// 	// 	TLSClientConfig: &tls.Config{}, //set ssl
+		// 	// },
+		// }))
 	} else {
 		c.Client = graphqlapi.NewClient(c.Host)
 	}
