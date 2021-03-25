@@ -79,9 +79,8 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 		// use custom client with proxy
 		c.Client = graphqlapi.NewClient(c.Host, graphqlapi.WithHTTPClient(&http.Client{
 			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxy),
-				// Disable HTTP/2.
-				TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
+				Proxy:           http.ProxyURL(proxy),
+				TLSClientConfig: &tls.Config{}, //set ssl
 			},
 		}))
 	} else {
