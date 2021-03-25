@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/onmi-bv/commons/confighelper v0.0.0-20210324235358-ce1f4d73f312
