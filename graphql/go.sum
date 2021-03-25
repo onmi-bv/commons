@@ -133,8 +133,12 @@ github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRW
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/onmi-bv/commons/confighelper v0.0.0-20210324235358-ce1f4d73f312 h1:igayLqsMuMdO+dW+IRG9FQf2nhwwwnh1AubifU1Zq0I=
 github.com/onmi-bv/commons/confighelper v0.0.0-20210324235358-ce1f4d73f312/go.mod h1:K4EbvU7wiZjfB5MehEdzYTS7469fsoExIv/7VX+kLf0=
+github.com/onmi-bv/commons/confighelper v0.0.0-20210325215940-01e3a8afd51c h1:cGixmjufZqCbtKlz6hgXeLIoHoKuE9LhfNHg48BdBnM=
+github.com/onmi-bv/commons/confighelper v0.0.0-20210325215940-01e3a8afd51c/go.mod h1:2YEps13wkhob+hooNMrCJ83hsOqVruQjBwd+XLWd9Fk=
 github.com/onmi-bv/commons/graphql/api v0.0.0-20210324235358-ce1f4d73f312 h1:EQh4T9yCdBDtk36PP/RVIwSNndiC7qj5ffwHMbgbhEI=
 github.com/onmi-bv/commons/graphql/api v0.0.0-20210324235358-ce1f4d73f312/go.mod h1:yhPe0QFSDMJ7yxNYOnBCLLXyQw78WSrOMx1isA7ewPg=
+github.com/onmi-bv/commons/graphql/api v0.0.0-20210325215940-01e3a8afd51c h1:KCaQJilGD00/v0b8Coui/JrNgsdyvRCcnruyAgnlu2U=
+github.com/onmi-bv/commons/graphql/api v0.0.0-20210325215940-01e3a8afd51c/go.mod h1:yhPe0QFSDMJ7yxNYOnBCLLXyQw78WSrOMx1isA7ewPg=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/pelletier/go-toml v1.8.1 h1:1Nf83orprkJyknT6h7zbuEGUEjcyVlCxSUGTENmNCRM=

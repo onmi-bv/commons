@@ -6,8 +6,8 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
-	github.com/onmi-bv/commons/confighelper v0.0.0-20210324235358-ce1f4d73f312
-	github.com/onmi-bv/commons/graphql/api v0.0.0-20210324235358-ce1f4d73f312
+	github.com/onmi-bv/commons/confighelper v0.0.0-20210325215940-01e3a8afd51c
+	github.com/onmi-bv/commons/graphql/api v0.0.0-20210325215940-01e3a8afd51c
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0 // indirect
