@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -79,6 +80,8 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 		c.Client = graphqlapi.NewClient(c.Host, graphqlapi.WithHTTPClient(&http.Client{
 			Transport: &http.Transport{
 				Proxy: http.ProxyURL(proxy),
+				// Disable HTTP/2.
+				TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
 			},
 		}))
 	} else {
