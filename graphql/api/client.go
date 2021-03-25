@@ -141,7 +141,7 @@ func (c *Client) runWithJSON(ctx context.Context, req *Request, resp interface{}
 	}
 	c.logf("<< %s", buf.String())
 	if err := json.NewDecoder(&buf).Decode(&gr); err != nil {
-		return errors.Wrap(err, "decoding response")
+		return errors.Wrapf(err, "decoding response: %s", buf.String())
 	}
 	if len(gr.Errors) > 0 {
 		// return first error
