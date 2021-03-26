@@ -78,7 +78,6 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 		// use custom client with proxy
 		host, _ := url.Parse(c.Host)
 		host.Host = proxy.Host
-		c.Host = host.String()
 		c.Client = graphqlapi.NewClient(host.String())
 	} else {
 		c.Client = graphqlapi.NewClient(c.Host)

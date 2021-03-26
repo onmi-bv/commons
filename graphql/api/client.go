@@ -141,7 +141,7 @@ func (c *Client) runWithJSON(ctx context.Context, req *Request, resp interface{}
 	}
 	c.logf("<< %s", buf.String())
 	if err := json.NewDecoder(&buf).Decode(&gr); err != nil {
-		return errors.Wrapf(err, "decoding response: %s", buf.String())
+		return errors.Wrapf(err, "decoding response: %s", string(buf.Bytes()))
 	}
 	if len(gr.Errors) > 0 {
 		// return first error
@@ -208,7 +208,7 @@ func (c *Client) runWithPostFields(ctx context.Context, req *Request, resp inter
 	}
 	c.logf("<< %s", buf.String())
 	if err := json.NewDecoder(&buf).Decode(&gr); err != nil {
-		return errors.Wrapf(err, "decoding response: %s", buf.String())
+		return errors.Wrapf(err, "decoding response: %s", string(buf.Bytes()))
 	}
 	if len(gr.Errors) > 0 {
 		// return first error
