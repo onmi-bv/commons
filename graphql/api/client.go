@@ -36,7 +36,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 
@@ -140,10 +139,10 @@ func (c *Client) runWithJSON(ctx context.Context, req *Request, resp interface{}
 	if _, err := io.Copy(&buf, res.Body); err != nil {
 		return errors.Wrap(err, "reading body")
 	}
-	c.logf("<< %s", buf.String())
+	str := buf.String()
+	c.logf("<< %s", str)
 	if err := json.NewDecoder(&buf).Decode(&gr); err != nil {
-		b, _ := ioutil.ReadAll(res.Body)
-		return errors.Wrapf(err, "decoding response: %s", string(b))
+		return errors.Wrapf(err, "decoding response: %s", str)
 	}
 	if len(gr.Errors) > 0 {
 		// return first error
@@ -208,10 +207,10 @@ func (c *Client) runWithPostFields(ctx context.Context, req *Request, resp inter
 	if _, err := io.Copy(&buf, res.Body); err != nil {
 		return errors.Wrap(err, "reading body")
 	}
-	c.logf("<< %s", buf.String())
+	str := buf.String()
+	c.logf("<< %s", str)
 	if err := json.NewDecoder(&buf).Decode(&gr); err != nil {
-		b, _ := ioutil.ReadAll(res.Body)
-		return errors.Wrapf(err, "decoding response: %s", string(b))
+		return errors.Wrapf(err, "decoding response: %s", str)
 	}
 	if len(gr.Errors) > 0 {
 		// return first error
