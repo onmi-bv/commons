@@ -47,8 +47,12 @@ func Init(ctx context.Context, conf Configuration) (Client, error) {
 	if err != nil {
 		return c, fmt.Errorf("Load: %v", err)
 	}
-	c.RequestOption = conf.RequestOption
-	c.Log = conf.Log
+	if conf.RequestOption != nil {
+		c.RequestOption = conf.RequestOption
+	}
+	if conf.Log != nil {
+		c.Log = conf.Log
+	}
 	return c, err
 }
 
