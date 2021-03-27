@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -37,6 +38,7 @@ type Configuration struct {
 	Path          string // Path to config file.
 	Prefix        string // Prefix to environment variables.
 	RequestOption RequestOption
+	Log           func(string)
 }
 
 // Init client
@@ -46,7 +48,7 @@ func Init(ctx context.Context, conf Configuration) (Client, error) {
 		return c, fmt.Errorf("Load: %v", err)
 	}
 	c.RequestOption = conf.RequestOption
-	c.Log = func(s string) { log.Trace(s) }
+	c.Log = conf.Log
 	return c, err
 }
 
@@ -169,10 +171,10 @@ func (c *Client) UpdateNode(ctx context.Context, node Node, opts ...RequestOptio
 		}
 	}`
 
-	// log.Tracef("graphql query: %v", query)
+	log.Tracef("graphql query: %v", query)
 
-	// b, _ := json.MarshalIndent(node.Patch(), "  ", "  ")
-	// log.Tracef("graphql node: %v", string(b))
+	b, _ := json.MarshalIndent(node.Patch(), "  ", "  ")
+	log.Tracef("graphql node: %v", string(b))
 
 	// make a request
 	req := graphqlapi.NewRequest(query)
@@ -227,10 +229,10 @@ func (c *Client) AddNode(ctx context.Context, node []Node, opts ...RequestOption
 		}
 	}`
 
-	// log.Tracef("graphql query: %v", query)
+	log.Tracef("graphql query: %v", query)
 
-	// b, _ := json.MarshalIndent(node, "  ", "  ")
-	// log.Tracef("graphql node: %v", string(b))
+	b, _ := json.MarshalIndent(node, "  ", "  ")
+	log.Tracef("graphql node: %v", string(b))
 
 	// make a request
 	req := graphqlapi.NewRequest(query)
@@ -273,7 +275,7 @@ func (c *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string,
 		}
 	}`
 
-	// log.Tracef("graphql query: %v", query)
+	log.Tracef("graphql query: %v", query)
 
 	// make a request
 	req := graphqlapi.NewRequest(query)
@@ -307,8 +309,8 @@ func (c *Client) CustomNodeMutation(ctx context.Context, customFn string, inputT
 
 	log.Debugf("custom.. %s", customFn)
 
-	// b, _ := json.MarshalIndent(node, "  ", "  ")
-	// log.Tracef("graphql node: %v", string(b))
+	b, _ := json.MarshalIndent(node, "  ", "  ")
+	log.Tracef("graphql node: %v", string(b))
 
 	// delete node
 	query := `
