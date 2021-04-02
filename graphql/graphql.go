@@ -130,6 +130,7 @@ func (c *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp int
 }
 
 // UpsertNode adds or updates a node.
+// Deprecated: use AddNode with upsert flag instead.
 func (c *Client) UpsertNode(ctx context.Context, node Node, opts ...RequestOption) (uid string, err error) {
 	log.Tracef("saving.. node: %v %v", node.DType(), node.GetID())
 
