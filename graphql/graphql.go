@@ -141,7 +141,7 @@ func (c *Client) UpsertNode(ctx context.Context, node Node, opts ...RequestOptio
 
 	// if no record was updated, add it
 	if res == nil || res.NumUids == 0 {
-		res, err = c.AddNode(ctx, []Node{node}, opts...)
+		res, err = c.AddNode(ctx, []Node{node}, false, opts...)
 		if err != nil {
 			return node.GetID(), fmt.Errorf("could not add node: %v", err)
 		}
@@ -211,7 +211,7 @@ func (c *Client) UpdateNode(ctx context.Context, node Node, opts ...RequestOptio
 // AddNode uses the Add<type> API to add new nodes.
 // If more than 1 node is added, make sure they are of same types and their IDs doesn't exist,
 // otherwise, use Upsert tp add them individually.
-func (c *Client) AddNode(ctx context.Context, node []Node, opts ...RequestOption) (*MutationResult, error) {
+func (c *Client) AddNode(ctx context.Context, node []Node, upsert bool, opts ...RequestOption) (*MutationResult, error) {
 
 	if len(node) == 0 {
 		return nil, fmt.Errorf("addNodes requires nodes to add, but received none")
@@ -227,8 +227,8 @@ func (c *Client) AddNode(ctx context.Context, node []Node, opts ...RequestOption
 
 	// save node
 	query := `
-	mutation add` + dtype + `Mutation ($set: [Add` + dtype + `Input!]!) {
-		add` + dtype + `(input: $set){
+	mutation add` + dtype + `Mutation ($set: [Add` + dtype + `Input!]!, $upsert: Boolean!) {
+		add` + dtype + `(input: $set, upsert: $upsert){
 			numUids
 		}
 	}`
@@ -243,6 +243,7 @@ func (c *Client) AddNode(ctx context.Context, node []Node, opts ...RequestOption
 
 	// set any variables
 	req.Var("set", node)
+	req.Var("upsert", upsert)
 
 	// run request functions
 	for _, optionFunc := range opts {
