@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/onmi-bv/commons/confighelper"
+	"github.com/onmi-bv/commons/graphql/api"
 	graphqlapi "github.com/onmi-bv/commons/graphql/api"
 	log "github.com/sirupsen/logrus"
 )
@@ -109,6 +110,9 @@ type Request = graphqlapi.Request
 // RequestOption are functions that are passed to
 // modify the graphql requests. Use function to modify headers, Vars.
 type RequestOption = func(*Request)
+
+// NewRequest makes a new Request with the specified string.
+var NewRequest func(string) *Request = api.NewRequest
 
 // RetryRun makes request with retries
 func (c *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp interface{}, retry int) error {
