@@ -42,8 +42,8 @@ type Configuration struct {
 }
 
 // Init client
-func Init(ctx context.Context, conf Configuration) (Client, error) {
-	c, err := LoadConfig(ctx, conf.Path, conf.Prefix)
+func Init(ctx context.Context, conf Configuration, opts ...ClientOption) (Client, error) {
+	c, err := LoadConfig(ctx, conf.Path, conf.Prefix, opts...)
 	if err != nil {
 		return c, fmt.Errorf("Load: %v", err)
 	}
@@ -84,7 +84,7 @@ func LoadConfig(ctx context.Context, cFile string, prefix string, opts ...Client
 		// use custom client with proxy
 		host, _ := url.Parse(c.Host)
 		host.Host = proxy.Host
-		c.APIClient = api.NewClient(host.String())
+		c.APIClient = api.NewClient(host.String(), opts...)
 	} else {
 		c.APIClient = api.NewClient(c.Host, opts...)
 	}
