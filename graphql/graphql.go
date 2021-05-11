@@ -11,7 +11,6 @@ import (
 
 	"github.com/onmi-bv/commons/confighelper"
 	"github.com/onmi-bv/commons/graphql/api"
-	graphqlapi "github.com/onmi-bv/commons/graphql/api"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,7 +30,7 @@ type Client struct {
 	AuthEnabled bool   `mapstructure:"AUTH_ENABLED"`
 	AuthSecret  string `mapstructure:"SECRET"`
 	Proxy       string `mapstructure:"PROXY"`
-	*graphqlapi.Client
+	*APIClient
 }
 
 // Configuration used for initialization
@@ -58,7 +57,7 @@ func Init(ctx context.Context, conf Configuration) (Client, error) {
 }
 
 // LoadConfig loads the graphql host parameters from environment
-func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error) {
+func LoadConfig(ctx context.Context, cFile string, prefix string, opts ...ClientOption) (Client, error) {
 	c := Client{}
 
 	if err := confighelper.ReadConfig(cFile, prefix, &c); err != nil {
@@ -85,9 +84,9 @@ func LoadConfig(ctx context.Context, cFile string, prefix string) (Client, error
 		// use custom client with proxy
 		host, _ := url.Parse(c.Host)
 		host.Host = proxy.Host
-		c.Client = graphqlapi.NewClient(host.String())
+		c.APIClient = api.NewClient(host.String())
 	} else {
-		c.Client = graphqlapi.NewClient(c.Host)
+		c.APIClient = api.NewClient(c.Host, opts...)
 	}
 
 	log.Debugln("...")
@@ -104,8 +103,15 @@ type MutationResult struct {
 	}
 }
 
+// APIClient is the GraphQL client
+type APIClient = api.Client
+
+// ClientOption are functions that are passed into NewClient to
+// modify the behaviour of the Client.
+type ClientOption = api.ClientOption
+
 // Request is a GraphQL request.
-type Request = graphqlapi.Request
+type Request = api.Request
 
 // RequestOption are functions that are passed to
 // modify the graphql requests. Use function to modify headers, Vars.
@@ -115,7 +121,7 @@ type RequestOption = func(*Request)
 var NewRequest func(string) *Request = api.NewRequest
 
 // RetryRun makes request with retries
-func (c *Client) RetryRun(ctx context.Context, req *graphqlapi.Request, resp interface{}, retry int) error {
+func (c *Client) RetryRun(ctx context.Context, req *api.Request, resp interface{}, retry int) error {
 	var err error
 	for i := 0; i < retry; i++ {
 		err = c.Run(ctx, req, resp)
@@ -186,7 +192,7 @@ func (c *Client) UpdateNode(ctx context.Context, node Node, opts ...RequestOptio
 	log.Tracef("graphql node: %v", string(b))
 
 	// make a request
-	req := graphqlapi.NewRequest(query)
+	req := api.NewRequest(query)
 
 	// set any variables
 	req.Var("set", node.Patch())
@@ -244,7 +250,7 @@ func (c *Client) AddNode(ctx context.Context, node []Node, upsert bool, opts ...
 	log.Tracef("graphql node: %v", string(b))
 
 	// make a request
-	req := graphqlapi.NewRequest(query)
+	req := api.NewRequest(query)
 
 	// set any variables
 	req.Var("set", node)
@@ -288,7 +294,7 @@ func (c *Client) DeleteNodeByID(ctx context.Context, _type string, ids []string,
 	log.Tracef("graphql query: %v", query)
 
 	// make a request
-	req := graphqlapi.NewRequest(query)
+	req := api.NewRequest(query)
 
 	// set any variables
 	req.Var("id", ids)
@@ -331,7 +337,7 @@ func (c *Client) CustomNodeMutation(ctx context.Context, customFn string, inputT
 	}`
 
 	// make a request
-	req := graphqlapi.NewRequest(query)
+	req := api.NewRequest(query)
 
 	req.Var("input", node)
 
@@ -372,7 +378,7 @@ func (c *Client) CustomNodeMutationWithoutInput(ctx context.Context, customFn st
 	}`
 
 	// make a request
-	req := graphqlapi.NewRequest(query)
+	req := api.NewRequest(query)
 
 	// log.Tracef("graphql query: %s", query)
 
