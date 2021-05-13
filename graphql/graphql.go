@@ -150,10 +150,6 @@ func (c *Client) UpsertNode(ctx context.Context, node Node, opts ...RequestOptio
 		return nil, fmt.Errorf("could not upsert node: %v", err)
 	}
 
-	if res != nil && res.NumUids == 0 {
-		log.Warningf("record was not upserted: %v %v, numUids=%v", node.DType(), node.GetID(), res.NumUids)
-	}
-
 	return res, err
 }
 
@@ -220,7 +216,7 @@ func (c *Client) AddNode(ctx context.Context, node []Node, upsert bool, opts ...
 		return nil, fmt.Errorf("addNodes requires nodes to add, but received none")
 	}
 
-	log.Debugf("adding.. %v nodes: %v %v", len(node), node[0].DType(), node[0].GetID())
+	log.Debugf("adding.. %s nodes: %s(%s)", len(node), node[0].DType(), node[0].GetID())
 
 	dtype := node[0].DType()
 
