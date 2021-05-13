@@ -141,28 +141,20 @@ func (c *Client) RetryRun(ctx context.Context, req *api.Request, resp interface{
 
 // UpsertNode adds or updates a node.
 // Deprecated: use AddNode with upsert flag instead.
-func (c *Client) UpsertNode(ctx context.Context, node Node, opts ...RequestOption) (uid string, err error) {
+func (c *Client) UpsertNode(ctx context.Context, node Node, opts ...RequestOption) (res *MutationResult, err error) {
 	log.Tracef("saving.. node: %v %v", node.DType(), node.GetID())
 
-	// update record
-	res, err := c.UpdateNode(ctx, node, opts...)
+	// upsert record
+	res, err = c.AddNode(ctx, []Node{node}, true, opts...)
 	if err != nil {
-		log.Warningf("could not update node: %v", err)
-	}
-
-	// if no record was updated, add it
-	if res == nil || res.NumUids == 0 {
-		res, err = c.AddNode(ctx, []Node{node}, false, opts...)
-		if err != nil {
-			return node.GetID(), fmt.Errorf("could not add node: %v", err)
-		}
+		return nil, fmt.Errorf("could not upsert node: %v", err)
 	}
 
 	if res != nil && res.NumUids == 0 {
 		log.Warningf("record was not upserted: %v %v, numUids=%v", node.DType(), node.GetID(), res.NumUids)
 	}
 
-	return node.GetID(), err
+	return res, err
 }
 
 // UpdateNode uses the update<type> GraphQL API to update a node.
