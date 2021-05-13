@@ -222,10 +222,6 @@ func (c *Client) AddNode(ctx context.Context, node []Node, upsert bool, opts ...
 
 	log.Debugf("adding.. %v nodes: %v %v", len(node), node[0].DType(), node[0].GetID())
 
-	if node[0].GetID() == "" {
-		return nil, fmt.Errorf("addNode requires XID in node")
-	}
-
 	dtype := node[0].DType()
 
 	// save node
