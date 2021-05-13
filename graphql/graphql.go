@@ -155,7 +155,7 @@ func (c *Client) UpsertNode(ctx context.Context, node Node, opts ...RequestOptio
 
 // UpdateNode uses the update<type> GraphQL API to update a node.
 func (c *Client) UpdateNode(ctx context.Context, node Node, opts ...RequestOption) (*MutationResult, error) {
-	log.Debugf("updating node: %v %v", node.DType(), node.GetID())
+	log.Debugf("updating node: %v (%v)", node.DType(), node.GetID())
 
 	if node.GetID() == "" {
 		return nil, fmt.Errorf("updateNode requires XID in node")
@@ -216,7 +216,7 @@ func (c *Client) AddNode(ctx context.Context, node []Node, upsert bool, opts ...
 		return nil, fmt.Errorf("addNodes requires nodes to add, but received none")
 	}
 
-	log.Debugf("adding.. %s nodes: %s(%s)", len(node), node[0].DType(), node[0].GetID())
+	log.Debugf("adding.. %v nodes: %v(%v)", len(node), node[0].DType(), node[0].GetID())
 
 	dtype := node[0].DType()
 
