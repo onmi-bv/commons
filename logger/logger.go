@@ -112,7 +112,13 @@ func (config *Logger) Initialize(ctx context.Context, appName string, appVersion
 	if err != nil {
 		return nil, fmt.Errorf("parse error: %v", err)
 	}
+
 	logger.SetLevel(logLevel)
+	logger.WithContext(ctx)
+
+	if appName != "" {
+		logger.WithField("app", appName)
+	}
 
 	// * set output
 	switch config.Output {
