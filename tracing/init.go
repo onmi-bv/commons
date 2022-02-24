@@ -54,6 +54,8 @@ type Configuration struct {
 // Tracer type
 type Tracer = trace.Tracer
 
+var TP *sdktrace.TracerProvider
+
 // Init initializes opentelemetry. The returned Tracer is ready to use.
 // The returned Exporter will be useful for flushing spans before exiting the process.
 func Init(ctx context.Context, name string) (Tracer, error) {
@@ -95,11 +97,11 @@ func Init(ctx context.Context, name string) (Tracer, error) {
 	// Example:
 	//   config := sdktrace.Config{DefaultSampler:sdktrace.ProbabilitySampler(0.0001)}
 	//   tp, err := sdktrace.NewProvider(sdktrace.WithConfig(config), ...)
-	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
-	otel.SetTracerProvider(tp)
+	TP = sdktrace.NewTracerProvider(sdktrace.WithBatcher(exporter))
+	otel.SetTracerProvider(TP)
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
-	tracer = tp.Tracer(name)
+	tracer = TP.Tracer(name)
 
 	return tracer, err
 }
