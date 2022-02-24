@@ -7,19 +7,9 @@ import (
 	"github.com/onmi-bv/commons/confighelper"
 	"github.com/pkg/errors"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
-)
-
-// otelhttp
-type (
-	OtelhttpFilter    otelhttp.Filter
-	OtelhttpHandler   otelhttp.Handler
-	OtelhttpLabeler   otelhttp.Labeler
-	OtelhttpTransport otelhttp.Transport
-	OtelhttpOption    otelhttp.Option
 )
 
 // ExporterType defines the supported exporters
