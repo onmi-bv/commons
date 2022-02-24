@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -96,6 +97,7 @@ func Init(ctx context.Context, name string) (Tracer, error) {
 	//   tp, err := sdktrace.NewProvider(sdktrace.WithConfig(config), ...)
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	tracer = tp.Tracer(name)
 
