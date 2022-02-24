@@ -84,7 +84,7 @@ func Init(ctx context.Context, name string) (Tracer, error) {
 	switch config.Exporter {
 	// Create exporter for stackdriver
 	case StackdriverExporter:
-		exporter, err = texporter.NewExporter(
+		exporter, err = texporter.New(
 			texporter.WithContext(ctx),
 			texporter.WithProjectID(config.ProjectID),
 		)
