@@ -14,11 +14,13 @@ import (
 )
 
 // otelhttp
-type OtelhttpFilter otelhttp.Filter
-type OtelhttpHandler otelhttp.Handler
-type OtelhttpLabeler otelhttp.Labeler
-type OtelhttpTransport otelhttp.Transport
-type OtelhttpOption otelhttp.Option
+type (
+	OtelhttpFilter    otelhttp.Filter
+	OtelhttpHandler   otelhttp.Handler
+	OtelhttpLabeler   otelhttp.Labeler
+	OtelhttpTransport otelhttp.Transport
+	OtelhttpOption    otelhttp.Option
+)
 
 // ExporterType defines the supported exporters
 type ExporterType string
