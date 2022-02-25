@@ -4,6 +4,7 @@ import (
 	"context"
 
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
+	"github.com/go-logr/logr"
 	"github.com/onmi-bv/commons/confighelper"
 	"github.com/pkg/errors"
 
@@ -49,44 +50,46 @@ type Configuration struct {
 	// MaxNumberOfWorkers sets the maximum number of go rountines that send requests
 	// to Cloud Trace. The minimum number of workers is 1.
 	MaxNumberOfWorkers int `mapstructure:"MAX_NUMBER_OF_WORKERS"`
+
+	// Tracer logger
+	Logger logr.Logger
 }
 
 // Tracer type
-type Tracer = trace.Tracer
+type (
+	Tracer        = trace.Tracer
+	TraceProvider = *sdktrace.TracerProvider
+)
 
 var TP *sdktrace.TracerProvider
 
 // Init initializes opentelemetry. The returned Tracer is ready to use.
 // The returned Exporter will be useful for flushing spans before exiting the process.
-func Init(ctx context.Context, name string) (Tracer, error) {
+func Init(ctx context.Context, name string, config Configuration) (Tracer, TraceProvider, error) {
 
 	tracer := otel.Tracer(name)
 
 	// init config params
-	config := Configuration{
-		Exporter: StackdriverExporter,
-	}
 	err := confighelper.ReadConfig("app.conf", "tracing", &config)
 	if err != nil {
-		return tracer, err
+		return tracer, nil, err
 	}
 
 	// create exporter
-	var exporter *texporter.Exporter
+	var exporter sdktrace.SpanExporter
 
 	switch config.Exporter {
-	// Create exporter for stackdriver
-	case StackdriverExporter:
+	case StackdriverExporter: // Create exporter for stackdriver
 		exporter, err = texporter.New(
 			texporter.WithContext(ctx),
 			texporter.WithProjectID(config.ProjectID),
 		)
 		if err != nil {
-			return tracer, errors.Wrap(err, "cannot init stackdriver exporter")
+			return tracer, nil, errors.Wrap(err, "cannot init stackdriver exporter")
 		}
 
 	default:
-		return tracer, errors.New("unsupported exporter")
+		return tracer, nil, errors.New("unsupported exporter")
 	}
 
 	// Create trace provider with the exporter.
@@ -97,11 +100,12 @@ func Init(ctx context.Context, name string) (Tracer, error) {
 	// Example:
 	//   config := sdktrace.Config{DefaultSampler:sdktrace.ProbabilitySampler(0.0001)}
 	//   tp, err := sdktrace.NewProvider(sdktrace.WithConfig(config), ...)
-	TP = sdktrace.NewTracerProvider(sdktrace.WithBatcher(exporter))
-	otel.SetTracerProvider(TP)
+	tp := sdktrace.NewTracerProvider(sdktrace.WithBatcher(exporter))
+	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.TraceContext{})
+	otel.SetLogger(config.Logger)
 
 	tracer = TP.Tracer(name)
 
-	return tracer, err
+	return tracer, tp, err
 }
