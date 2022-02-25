@@ -9,9 +9,9 @@ import (
 
 	"github.com/onmi-bv/commons/internal/slackrus"
 
-	stackdriver "github.com/TV4/logrus-stackdriver-formatter"
 	"github.com/evalphobia/logrus_fluent"
 	"github.com/onmi-bv/commons/confighelper"
+	stackdriver "github.com/onmi-bv/commons/logger/sdformatter"
 	logger "github.com/sirupsen/logrus"
 )
 
