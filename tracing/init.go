@@ -61,8 +61,6 @@ type (
 	TraceProvider = *sdktrace.TracerProvider
 )
 
-var TP *sdktrace.TracerProvider
-
 // Init initializes opentelemetry. The returned Tracer is ready to use.
 // The returned Exporter will be useful for flushing spans before exiting the process.
 func Init(ctx context.Context, name string, config Configuration) (Tracer, TraceProvider, error) {
@@ -105,7 +103,6 @@ func Init(ctx context.Context, name string, config Configuration) (Tracer, Trace
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 	otel.SetLogger(config.Logger)
 
-	tracer = TP.Tracer(name)
-
+	tracer = tp.Tracer(name)
 	return tracer, tp, err
 }
