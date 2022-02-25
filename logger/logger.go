@@ -11,7 +11,7 @@ import (
 
 	"github.com/evalphobia/logrus_fluent"
 	"github.com/onmi-bv/commons/confighelper"
-	stackdriver "github.com/onmi-bv/commons/logger/sdformatter"
+	stackdriver "github.com/onmi-bv/commons/logger/internals/sdformatter"
 	logger "github.com/sirupsen/logrus"
 )
 
