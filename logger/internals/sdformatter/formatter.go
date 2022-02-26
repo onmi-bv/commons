@@ -40,14 +40,13 @@ type serviceContext struct {
 }
 
 type reportLocation struct {
-	FilePath     string `json:"filePath,omitempty"`
-	LineNumber   int    `json:"lineNumber,omitempty"`
-	FunctionName string `json:"functionName,omitempty"`
+	FilePath     string `json:"file,omitempty"`
+	LineNumber   int    `json:"line,omitempty"`
+	FunctionName string `json:"function,omitempty"`
 }
 
 type context struct {
-	Data           map[string]interface{} `json:"data,omitempty"`
-	ReportLocation *reportLocation        `json:"reportLocation,omitempty"`
+	Data map[string]interface{} `json:"data,omitempty"`
 }
 
 type entry struct {
@@ -59,6 +58,7 @@ type entry struct {
 	Trace          interface{}            `json:"logging.googleapis.com/trace,omitempty"`
 	SpanID         interface{}            `json:"logging.googleapis.com/spanId,omitempty"`
 	TraceSampled   interface{}            `json:"logging.googleapis.com/trace_sampled,omitempty"`
+	ReportLocation *reportLocation        `json:"logging.googleapis.com/sourceLocation,omitempty"`
 	Context        *context               `json:"context,omitempty"`
 }
 
@@ -170,7 +170,7 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 	if c, err := f.errorOrigin(); err == nil {
 		lineNumber, _ := strconv.ParseInt(fmt.Sprintf("%d", c), 10, 64)
 
-		ee.Context.ReportLocation = &reportLocation{
+		ee.ReportLocation = &reportLocation{
 			FilePath:     fmt.Sprintf("%+s", c),
 			LineNumber:   int(lineNumber),
 			FunctionName: fmt.Sprintf("%n", c),
