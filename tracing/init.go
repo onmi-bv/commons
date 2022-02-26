@@ -24,7 +24,7 @@ const (
 )
 
 // Configuration ...
-type Configuration struct {
+type configuration struct {
 	// Exporter type supported by commons
 	Exporter ExporterType `mapstructure:"EXPORTER"`
 
@@ -50,25 +50,42 @@ type Configuration struct {
 	// MaxNumberOfWorkers sets the maximum number of go rountines that send requests
 	// to Cloud Trace. The minimum number of workers is 1.
 	MaxNumberOfWorkers int `mapstructure:"MAX_NUMBER_OF_WORKERS"`
-
-	// Tracer logger
-	Logger logr.Logger
 }
 
 // Tracer type
 type (
 	Tracer        = trace.Tracer
 	TraceProvider = *sdktrace.TracerProvider
+	TraceOption   func(*configuration)
 )
+
+func WithLogger(l logr.Logger) TraceOption {
+	return func(c *configuration) {
+		otel.SetLogger(l)
+	}
+}
+
+func WithExporter(e ExporterType) TraceOption {
+	return func(c *configuration) {
+		c.Exporter = e
+	}
+}
 
 // Init initializes opentelemetry. The returned Tracer is ready to use.
 // The returned Exporter will be useful for flushing spans before exiting the process.
-func Init(ctx context.Context, name string, config Configuration) (Tracer, TraceProvider, error) {
+func Init(ctx context.Context, name string, opts ...TraceOption) (Tracer, TraceProvider, error) {
 
 	tracer := otel.Tracer(name)
 
+	config := &configuration{}
+
+	// run all options
+	for _, opt := range opts {
+		opt(config)
+	}
+
 	// init config params
-	err := confighelper.ReadConfig("app.conf", "tracing", &config)
+	err := confighelper.ReadConfig("app.conf", "tracing", config)
 	if err != nil {
 		return tracer, nil, err
 	}
@@ -101,7 +118,6 @@ func Init(ctx context.Context, name string, config Configuration) (Tracer, Trace
 	tp := sdktrace.NewTracerProvider(sdktrace.WithBatcher(exporter))
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.TraceContext{})
-	otel.SetLogger(config.Logger)
 
 	tracer = tp.Tracer(name)
 	return tracer, tp, err
