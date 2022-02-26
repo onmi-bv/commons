@@ -46,7 +46,6 @@ type reportLocation struct {
 }
 
 type context struct {
-	Data map[string]interface{} `json:"data,omitempty"`
 }
 
 type entry struct {
@@ -59,7 +58,7 @@ type entry struct {
 	SpanID         interface{}            `json:"logging.googleapis.com/spanId,omitempty"`
 	TraceSampled   interface{}            `json:"logging.googleapis.com/trace_sampled,omitempty"`
 	ReportLocation *reportLocation        `json:"logging.googleapis.com/sourceLocation,omitempty"`
-	Context        *context               `json:"context,omitempty"`
+	Data           map[string]interface{} `json:"data,omitempty"`
 }
 
 // Formatter implements Stackdriver formatting for logrus.
@@ -139,12 +138,9 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 	severity := levelsToSeverity[e.Level]
 
 	ee := entry{
-
 		Message:  e.Message,
 		Severity: severity,
-		Context: &context{
-			Data: e.Data,
-		},
+		Data:     e.Data,
 	}
 
 	if !skipTimestamp {
@@ -159,9 +155,9 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 	// When using WithError(), the error is sent separately, but Error
 	// Reporting expects it to be a part of the message so we append it
 	// instead.
-	if err, ok := ee.Context.Data["error"]; ok {
+	if err, ok := ee.Data["error"]; ok {
 		ee.Message = fmt.Sprintf("%s: %s", e.Message, err)
-		delete(ee.Context.Data, "error")
+		delete(ee.Data, "error")
 	} else {
 		ee.Message = e.Message
 	}
@@ -179,23 +175,23 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 
 	// As a convenience, when using supplying the httpRequest field, it
 	// gets special care.
-	if reqData, ok := ee.Context.Data["httpRequest"]; ok {
+	if reqData, ok := ee.Data["httpRequest"]; ok {
 		if req, ok := reqData.(map[string]interface{}); ok {
 			ee.HTTPRequest = req
-			delete(ee.Context.Data, "httpRequest")
+			delete(ee.Data, "httpRequest")
 		}
 	}
-	if data, ok := ee.Context.Data["trace"]; ok {
+	if data, ok := ee.Data["trace"]; ok {
 		ee.Trace = fmt.Sprintf("projects/%s/traces/%s", os.Getenv("GOOGLE_CLOUD_PROJECT"), data)
-		delete(ee.Context.Data, "trace")
+		delete(ee.Data, "trace")
 	}
-	if data, ok := ee.Context.Data["spanId"]; ok {
+	if data, ok := ee.Data["spanId"]; ok {
 		ee.SpanID = data
-		delete(ee.Context.Data, "spanId")
+		delete(ee.Data, "spanId")
 	}
-	if data, ok := ee.Context.Data["traceSampled"]; ok {
+	if data, ok := ee.Data["traceSampled"]; ok {
 		ee.TraceSampled = data
-		delete(ee.Context.Data, "traceSampled")
+		delete(ee.Data, "traceSampled")
 	}
 
 	b, err := json.Marshal(ee)
