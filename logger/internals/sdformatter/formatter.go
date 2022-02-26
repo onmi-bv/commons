@@ -151,32 +151,29 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 		ee.Timestamp = time.Now().UTC().Format(time.RFC3339)
 	}
 
-	switch severity {
-	case severityError, severityCritical, severityAlert:
-		ee.ServiceContext = &serviceContext{
-			Service: f.Service,
-			Version: f.Version,
-		}
+	ee.ServiceContext = &serviceContext{
+		Service: f.Service,
+		Version: f.Version,
+	}
 
-		// When using WithError(), the error is sent separately, but Error
-		// Reporting expects it to be a part of the message so we append it
-		// instead.
-		if err, ok := ee.Context.Data["error"]; ok {
-			ee.Message = fmt.Sprintf("%s: %s", e.Message, err)
-			delete(ee.Context.Data, "error")
-		} else {
-			ee.Message = e.Message
-		}
+	// When using WithError(), the error is sent separately, but Error
+	// Reporting expects it to be a part of the message so we append it
+	// instead.
+	if err, ok := ee.Context.Data["error"]; ok {
+		ee.Message = fmt.Sprintf("%s: %s", e.Message, err)
+		delete(ee.Context.Data, "error")
+	} else {
+		ee.Message = e.Message
+	}
 
-		// Extract report location from call stack.
-		if c, err := f.errorOrigin(); err == nil {
-			lineNumber, _ := strconv.ParseInt(fmt.Sprintf("%d", c), 10, 64)
+	// Extract report location from call stack.
+	if c, err := f.errorOrigin(); err == nil {
+		lineNumber, _ := strconv.ParseInt(fmt.Sprintf("%d", c), 10, 64)
 
-			ee.Context.ReportLocation = &reportLocation{
-				FilePath:     fmt.Sprintf("%+s", c),
-				LineNumber:   int(lineNumber),
-				FunctionName: fmt.Sprintf("%n", c),
-			}
+		ee.Context.ReportLocation = &reportLocation{
+			FilePath:     fmt.Sprintf("%+s", c),
+			LineNumber:   int(lineNumber),
+			FunctionName: fmt.Sprintf("%n", c),
 		}
 	}
 
