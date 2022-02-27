@@ -58,6 +58,7 @@ type entry struct {
 	SpanID         interface{}            `json:"logging.googleapis.com/spanId,omitempty"`
 	TraceSampled   interface{}            `json:"logging.googleapis.com/trace_sampled,omitempty"`
 	ReportLocation *reportLocation        `json:"logging.googleapis.com/sourceLocation,omitempty"`
+	Operation      interface{}            `json:"logging.googleapis.com/operation,omitempty"`
 	Data           map[string]interface{} `json:"data,omitempty"`
 }
 
@@ -192,6 +193,10 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 	if data, ok := ee.Data["traceSampled"]; ok {
 		ee.TraceSampled = data
 		delete(ee.Data, "traceSampled")
+	}
+	if data, ok := ee.Data["operation"]; ok {
+		ee.Operation = data
+		delete(ee.Data, "operation")
 	}
 
 	b, err := json.Marshal(ee)
