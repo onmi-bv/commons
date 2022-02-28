@@ -16,6 +16,7 @@ import (
 	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Client defines the cloudevent client
@@ -162,11 +163,11 @@ func EventarcToEvent(ctx context.Context, e *event.Event) (*event.Event, error) 
 }
 
 // NewMessageFromPubSubRequest converts pubsub request to a ce binding message.
-func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (*cepubsub.Message, error) {
+func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (context.Context, *cepubsub.Message, error) {
 
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Error while ready request body")
+		return ctx, nil, errors.Wrapf(err, "Error while ready request body")
 	}
 	defer r.Body.Close()
 
@@ -177,14 +178,34 @@ func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (*cepubsu
 	}{}
 
 	if err := json.Unmarshal(b, &pm); err != nil {
-		return nil, errors.Wrapf(err, "Error while extracting pubsub message")
+		return ctx, nil, errors.Wrapf(err, "Error while extracting pubsub message")
 	}
 
-	return cepubsub.NewMessage(&pm.Message), nil
+	if spanContext, ok := pm.Message.Attributes["spanContext"]; ok {
+		var sc = struct {
+			TraceID    string
+			SpanID     string
+			TraceFlags byte
+			TraceState string
+			Remote     bool
+		}{}
+		json.Unmarshal([]byte(spanContext), &sc)
+
+		var spanContextConfig = trace.SpanContextConfig{}
+		spanContextConfig.TraceID, _ = trace.TraceIDFromHex(sc.TraceID)
+		spanContextConfig.SpanID, _ = trace.SpanIDFromHex(sc.SpanID)
+		spanContextConfig.TraceFlags = 01
+		spanContextConfig.Remote = sc.Remote
+
+		spanContext := trace.NewSpanContext(spanContextConfig)
+		ctx = trace.ContextWithRemoteSpanContext(ctx, spanContext)
+	}
+
+	return ctx, cepubsub.NewMessage(&pm.Message), nil
 }
 
 // NewEventFromHTTPRequest converts http request body to ce-event.
-func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (e *event.Event, err error) {
+func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (ectx context.Context, e *event.Event, err error) {
 
 	var m binding.MessageReader
 
@@ -192,10 +213,12 @@ func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (
 	case HTTPProtocol:
 		m = cehttp.NewMessageFromHttpRequest(r)
 	case PubSubProtocol:
-		if m, err = NewMessageFromPubSubRequest(ctx, r); err != nil {
+		if ctx, m, err = NewMessageFromPubSubRequest(ctx, r); err != nil {
 			return
 		}
 	}
 
-	return binding.ToEvent(ctx, m)
+	event, err := binding.ToEvent(ctx, m)
+
+	return ctx, event, err
 }
