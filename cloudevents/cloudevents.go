@@ -11,6 +11,7 @@ import (
 	cepubsub "github.com/cloudevents/sdk-go/protocol/pubsub/v2"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/cloudevents/sdk-go/v2/binding"
+	cloudeventsclient "github.com/cloudevents/sdk-go/v2/client"
 	"github.com/cloudevents/sdk-go/v2/event"
 	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
 	"github.com/pkg/errors"
@@ -104,14 +105,16 @@ func CloudEvents(ctx context.Context, port int) (ce cloudevents.Client, err erro
 }
 
 // HTTP creates and initilizes cloudevent with HTTP protocol.
-func HTTP(ctx context.Context, port int) (c Client, err error) {
+func HTTP(ctx context.Context, port int, opts ...cloudeventsclient.Option) (c Client, err error) {
 
 	protocol, err := cehttp.New(cloudevents.WithPort(port))
 	if err != nil {
 		return c, fmt.Errorf("failed to create cloudevent http protocol, %v", err)
 	}
 
-	ce, err := cloudevents.NewClientObserved(protocol, cloudevents.WithTimeNow(), cloudevents.WithUUIDs())
+	opts = append(opts, cloudevents.WithTimeNow(), cloudevents.WithUUIDs())
+
+	ce, err := cloudevents.NewClientObserved(protocol, opts...)
 	if err != nil {
 		return c, fmt.Errorf("failed to create cloudevent client, %v", err)
 	}
