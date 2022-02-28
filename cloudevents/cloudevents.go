@@ -50,7 +50,7 @@ func (c *Client) StartReceiver(ctx context.Context, fn interface{}) error {
 				return
 			}
 
-			event, err := NewEventFromHTTPRequest(ctx, r, c.Protocol)
+			ctx, event, err := NewEventFromHTTPRequest(ctx, r, c.Protocol)
 			if err != nil {
 				log.Errorf("cannot convert request to a valid cloudevent: %v", err)
 				http.Error(w, fmt.Sprintf("cannot convert request to a valid cloudevent: %v", err), http.StatusBadRequest)
