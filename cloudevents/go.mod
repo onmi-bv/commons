@@ -8,4 +8,5 @@ require (
 	github.com/cloudevents/sdk-go/v2 v2.8.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
+	go.opentelemetry.io/otel/trace v1.4.1
 )
