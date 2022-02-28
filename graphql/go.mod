@@ -1,6 +1,6 @@
 module github.com/onmi-bv/commons/graphql
 
-go 1.14
+go 1.16
 
 require (
 	github.com/onmi-bv/commons/confighelper v0.0.0-20210326015732-f8fab4063000
