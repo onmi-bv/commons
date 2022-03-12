@@ -210,9 +210,7 @@ func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (
 			Remote     bool
 		}{}
 
-		log.Info("xxxxxx spancontext", spanContext)
 		if scStr, ok := spanContext.(string); ok {
-			log.Info("xxxxxx spancontext boom", spanContext)
 			json.Unmarshal([]byte(scStr), &sc)
 		}
 
