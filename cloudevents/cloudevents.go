@@ -181,7 +181,7 @@ func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (context.
 		return ctx, nil, errors.Wrapf(err, "Error while extracting pubsub message")
 	}
 
-	if spanContext, ok := pm.Message.Attributes["spanContext"]; ok {
+	if spanContext, ok := pm.Message.Attributes["spancontext"]; ok {
 		var sc = struct {
 			TraceID    string
 			SpanID     string
