@@ -181,26 +181,6 @@ func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (context.
 		return ctx, nil, errors.Wrapf(err, "Error while extracting pubsub message")
 	}
 
-	if spanContext, ok := pm.Message.Attributes["spancontext"]; ok {
-		var sc = struct {
-			TraceID    string
-			SpanID     string
-			TraceFlags byte
-			TraceState string
-			Remote     bool
-		}{}
-		json.Unmarshal([]byte(spanContext), &sc)
-
-		var spanContextConfig = trace.SpanContextConfig{}
-		spanContextConfig.TraceID, _ = trace.TraceIDFromHex(sc.TraceID)
-		spanContextConfig.SpanID, _ = trace.SpanIDFromHex(sc.SpanID)
-		spanContextConfig.TraceFlags = 01
-		spanContextConfig.Remote = sc.Remote
-
-		spanContext := trace.NewSpanContext(spanContextConfig)
-		ctx = trace.ContextWithRemoteSpanContext(ctx, spanContext)
-	}
-
 	return ctx, cepubsub.NewMessage(&pm.Message), nil
 }
 
@@ -219,6 +199,30 @@ func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (
 	}
 
 	event, err := binding.ToEvent(ctx, m)
+
+	// parse spancontext
+	if spanContext, ok := event.Extensions()["spancontext"]; ok {
+		var sc = struct {
+			TraceID    string
+			SpanID     string
+			TraceFlags byte
+			TraceState string
+			Remote     bool
+		}{}
+
+		if scStr, ok := spanContext.(string); ok {
+			json.Unmarshal([]byte(scStr), &sc)
+		}
+
+		var spanContextConfig = trace.SpanContextConfig{}
+		spanContextConfig.TraceID, _ = trace.TraceIDFromHex(sc.TraceID)
+		spanContextConfig.SpanID, _ = trace.SpanIDFromHex(sc.SpanID)
+		spanContextConfig.TraceFlags = 01
+		spanContextConfig.Remote = sc.Remote
+
+		spanContext := trace.NewSpanContext(spanContextConfig)
+		ctx = trace.ContextWithRemoteSpanContext(ctx, spanContext)
+	}
 
 	return ctx, event, err
 }
