@@ -212,14 +212,9 @@ func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (
 		}{}
 
 		if scStr, ok := spanContext.(string); ok {
-			log.Infof("NewEventFromHTTPRequest - scStr %+v", scStr)
 			sDec, _ := base64.StdEncoding.DecodeString(scStr)
-			log.Infof("NewEventFromHTTPRequest - sdec %+v", sDec)
 			json.Unmarshal(sDec, &sc)
 		}
-
-		log.Infof("NewEventFromHTTPRequest - sc %+v", sc)
-		log.Infof("NewEventFromHTTPRequest - spancontext %+v", spanContext)
 
 		var spanContextConfig = trace.SpanContextConfig{}
 		spanContextConfig.TraceID, _ = trace.TraceIDFromHex(sc.TraceID)
