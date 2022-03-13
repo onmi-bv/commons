@@ -163,11 +163,11 @@ func EventarcToEvent(ctx context.Context, e *event.Event) (*event.Event, error) 
 }
 
 // NewMessageFromPubSubRequest converts pubsub request to a ce binding message.
-func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (context.Context, *cepubsub.Message, error) {
+func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (*cepubsub.Message, error) {
 
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return ctx, nil, errors.Wrapf(err, "Error while ready request body")
+		return nil, errors.Wrapf(err, "Error while ready request body")
 	}
 	defer r.Body.Close()
 
@@ -178,10 +178,10 @@ func NewMessageFromPubSubRequest(ctx context.Context, r *http.Request) (context.
 	}{}
 
 	if err := json.Unmarshal(b, &pm); err != nil {
-		return ctx, nil, errors.Wrapf(err, "Error while extracting pubsub message")
+		return nil, errors.Wrapf(err, "Error while extracting pubsub message")
 	}
 
-	return ctx, cepubsub.NewMessage(&pm.Message), nil
+	return cepubsub.NewMessage(&pm.Message), nil
 }
 
 // NewEventFromHTTPRequest converts http request body to ce-event.
@@ -193,7 +193,7 @@ func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (
 	case HTTPProtocol:
 		m = cehttp.NewMessageFromHttpRequest(r)
 	case PubSubProtocol:
-		if ctx, m, err = NewMessageFromPubSubRequest(ctx, r); err != nil {
+		if m, err = NewMessageFromPubSubRequest(ctx, r); err != nil {
 			return
 		}
 	}
@@ -213,6 +213,8 @@ func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (
 		if scStr, ok := spanContext.(string); ok {
 			json.Unmarshal([]byte(scStr), &sc)
 		}
+
+		log.WithField("sc", sc).WithField("spancontext", spanContext).Info("NewEventFromHTTPRequest")
 
 		var spanContextConfig = trace.SpanContextConfig{}
 		spanContextConfig.TraceID, _ = trace.TraceIDFromHex(sc.TraceID)
