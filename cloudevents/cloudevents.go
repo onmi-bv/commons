@@ -2,6 +2,7 @@ package cloudevents
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -211,7 +212,10 @@ func NewEventFromHTTPRequest(ctx context.Context, r *http.Request, p Protocol) (
 		}{}
 
 		if scStr, ok := spanContext.(string); ok {
-			json.Unmarshal([]byte(scStr), &sc)
+			log.Infof("NewEventFromHTTPRequest - scStr %+v", scStr)
+			sDec, _ := base64.StdEncoding.DecodeString(scStr)
+			log.Infof("NewEventFromHTTPRequest - sdec %+v", sDec)
+			json.Unmarshal(sDec, &sc)
 		}
 
 		log.Infof("NewEventFromHTTPRequest - sc %+v", sc)
