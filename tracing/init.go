@@ -2,8 +2,11 @@ package tracing
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
+	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/go-logr/logr"
 	"github.com/onmi-bv/commons/confighelper"
 	"github.com/pkg/errors"
@@ -121,4 +124,35 @@ func Init(ctx context.Context, name string, opts ...TraceOption) (Tracer, TraceP
 
 	tracer = tp.Tracer(name)
 	return tracer, tp, err
+}
+
+// StartSpanFromEvent extracts span context from event and starts a new remote span from the span context.
+func ContextFromEvent(ctx context.Context, e *event.Event, name string) context.Context {
+
+	// parse spancontext
+	if spanContext, ok := event.Extensions()["spancontext"]; ok {
+		var sc = struct {
+			TraceID    string
+			SpanID     string
+			TraceFlags byte
+			TraceState string
+			Remote     bool
+		}{}
+
+		if scStr, ok := spanContext.(string); ok {
+			sDec, _ := base64.StdEncoding.DecodeString(scStr)
+			json.Unmarshal(sDec, &sc)
+		}
+
+		var spanContextConfig = trace.SpanContextConfig{}
+		spanContextConfig.TraceID, _ = trace.TraceIDFromHex(sc.TraceID)
+		spanContextConfig.SpanID, _ = trace.SpanIDFromHex(sc.SpanID)
+		spanContextConfig.TraceFlags = 01
+		spanContextConfig.Remote = sc.Remote
+
+		spanContext := trace.NewSpanContext(spanContextConfig)
+		ctx = trace.ContextWithRemoteSpanContext(ctx, spanContext)
+	}
+
+	return ctx
 }
