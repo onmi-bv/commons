@@ -127,7 +127,7 @@ func Init(ctx context.Context, name string, opts ...TraceOption) (Tracer, TraceP
 }
 
 // StartSpanFromEvent extracts span context from event and starts a new remote span from the span context.
-func ContextFromEvent(ctx context.Context, event *event.Event) context.Context {
+func ContextFromEvent(ctx context.Context, event event.Event) context.Context {
 
 	// parse spancontext
 	if spanContext, ok := event.Extensions()["spancontext"]; ok {
