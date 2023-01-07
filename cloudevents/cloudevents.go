@@ -14,6 +14,7 @@ import (
 	"github.com/cloudevents/sdk-go/v2/binding"
 	cloudeventsclient "github.com/cloudevents/sdk-go/v2/client"
 	"github.com/cloudevents/sdk-go/v2/event"
+	"github.com/cloudevents/sdk-go/v2/protocol"
 	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -39,49 +40,79 @@ const (
 // StartReceiver starts an http receiver able to parse different protocols
 func (c *Client) StartReceiver(ctx context.Context, fn interface{}) error {
 
-	// Create a mux for routing incoming requests
-	mux := http.NewServeMux()
+	switch fn.(type) {
+	case func(ctx context.Context, event cloudevents.Event) (*cloudevents.Event, cloudevents.Result):
 
-	// All URLs will be handled by this function
-	mux.Handle("/", http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
+		// Create a mux for routing incoming requests
+		mux := http.NewServeMux()
 
-			if r.Method != "POST" { /* The regular updates are sent using a POST request, deny everything else */
-				w.WriteHeader(http.StatusMethodNotAllowed)
-				return
-			}
+		// All URLs will be handled by this function
+		mux.Handle("/", http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
 
-			ctx, event, err := NewEventFromHTTPRequest(ctx, r, c.Protocol)
-			if err != nil {
-				log.Errorf("cannot convert request to a valid cloudevent: %v", err)
-				http.Error(w, fmt.Sprintf("cannot convert request to a valid cloudevent: %v", err), http.StatusBadRequest)
-				return
-			}
+				if r.Method != "POST" { /* The regular updates are sent using a POST request, deny everything else */
+					w.WriteHeader(http.StatusMethodNotAllowed)
+					return
+				}
 
-			switch fn.(type) {
-			case func(ctx context.Context, event cloudevents.Event) (*cloudevents.Event, cloudevents.Result):
-				fn.(func(ctx context.Context, event cloudevents.Event) (*cloudevents.Event, cloudevents.Result))(ctx, *event)
-			default:
-				log.Error("unsupported receiver fn type")
-			}
-		},
-	))
+				ctx, ev, err := NewEventFromHTTPRequest(ctx, r, c.Protocol)
+				if err != nil {
+					log.Errorf("cannot convert request to a valid cloudevent: %v", err)
+					http.Error(w, fmt.Sprintf("cannot convert request to a valid cloudevent: %v", err), http.StatusBadRequest)
+					return
+				}
 
-	// Create a server listening on port 8000
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", c.receiverPort),
-		Handler: mux,
-	}
+				_, res := fn.(func(ctx context.Context, event cloudevents.Event) (*cloudevents.Event, cloudevents.Result))(ctx, *ev)
 
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen:%+s\n", err)
+				status := http.StatusOK
+				if res != nil {
+					var result *cehttp.Result
+					switch {
+					case protocol.ResultAs(res, &result):
+						if result.StatusCode > 100 && result.StatusCode < 600 {
+							status = result.StatusCode
+						}
+
+					case !protocol.IsACK(res):
+						// Map client errors to http status code
+						validationError := event.ValidationError{}
+						if errors.As(res, &validationError) {
+							status = http.StatusBadRequest
+							w.Header().Set("content-type", "text/plain")
+							w.WriteHeader(status)
+							_, _ = w.Write([]byte(validationError.Error()))
+							return
+						} else if errors.Is(res, binding.ErrUnknownEncoding) {
+							status = http.StatusUnsupportedMediaType
+						} else {
+							status = http.StatusInternalServerError
+						}
+					}
+				}
+
+				w.WriteHeader(status)
+			},
+		))
+
+		// Create a server listening on port 8000
+		srv := &http.Server{
+			Addr:    fmt.Sprintf(":%d", c.receiverPort),
+			Handler: mux,
 		}
-	}()
 
-	select {
-	case <-ctx.Done():
-		return srv.Shutdown(context.Background())
+		go func() {
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("listen:%+s\n", err)
+			}
+		}()
+
+		select {
+		case <-ctx.Done():
+			return srv.Shutdown(context.Background())
+		}
+
+	default:
+		return errors.New("unsupported receiver fn type")
 	}
 }
 
